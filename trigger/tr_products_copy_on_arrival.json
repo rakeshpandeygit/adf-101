@@ -2,7 +2,7 @@
 	"name": "tr_products_copy_on_arrival",
 	"properties": {
 		"annotations": [],
-		"runtimeState": "Started",
+		"runtimeState": "Stopped",
 		"pipelines": [
 			{
 				"pipelineReference": {
