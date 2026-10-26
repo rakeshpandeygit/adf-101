@@ -1,0 +1,15 @@
+{
+	"name": "df-training-adf-dev-eus-001",
+	"properties": {
+		"trustModeClaimForMi": {
+			"value": "Disabled",
+			"editable": true
+		}
+	},
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "6c401718-647c-4006-8fce-4120d243936b",
+		"tenantId": "7ae88651-3409-4fc8-8083-62cd82809270"
+	}
+}
