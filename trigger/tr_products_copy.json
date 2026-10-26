@@ -6,7 +6,7 @@
 		"pipelines": [
 			{
 				"pipelineReference": {
-					"referenceName": "Copy data",
+					"referenceName": "pl-retail-product-raw",
 					"type": "PipelineReference"
 				}
 			}
