@@ -33,6 +33,9 @@ flowchart TD
     D -->|No| H["False branch: configured handling"]
 ```
 
+<img width="2391" height="734" alt="image" src="https://github.com/user-attachments/assets/bc0c7795-bb08-4d3f-9cfa-c95e9b2c13b8" />
+
+
 ### How it works
 
 1. Start the pipeline manually or through a schedule.
@@ -76,9 +79,8 @@ flowchart TD
     E -->|No| H["False branch: configured handling"]
 ```
 
-```
-image.png
-```
+<img width="2239" height="795" alt="image" src="https://github.com/user-attachments/assets/466e773b-6c99-44a3-9bd7-cef224bf3477" />
+
 
 
 ### How it works
