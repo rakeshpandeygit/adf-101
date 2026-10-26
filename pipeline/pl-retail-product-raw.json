@@ -1,5 +1,5 @@
 {
-	"name": "Copy data",
+	"name": "pl-retail-product-raw",
 	"properties": {
 		"description": "retaildb project pipeline to ingest file from blob to adls gen2",
 		"activities": [
@@ -13,9 +13,8 @@
 						"referenceName": "product_csv_blob",
 						"type": "DatasetReference"
 					},
-					"timeout": "0.00:03:00",
-					"sleep": 30,
-					"minimumSize": 1
+					"timeout": "0.00:01:00",
+					"sleep": 10
 				}
 			},
 			{
@@ -50,6 +49,7 @@
 					],
 					"storeSettings": {
 						"type": "AzureBlobStorageReadSettings",
+						"recursive": true,
 						"enablePartitionDiscovery": false
 					},
 					"formatSettings": {
