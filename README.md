@@ -1,11 +1,17 @@
-# Azure Data Factory: File Ingestion with Polling and Storage Events
+# Azure Data Factory: File Ingestion with Polling and Storage Events - Production ready pipeline pattern
 
-This learning project demonstrates two ways to ingest a product CSV file from Azure Blob Storage into Azure Data Lake Storage Gen2 using Azure Data Factory (ADF):
+The project demonstrates two ways to ingest a product CSV file from Azure Blob Storage into Azure Data Lake Storage Gen2 using Azure Data Factory (ADF):
 
 1. A pipeline that waits for an expected file using a **Validation activity**.
 2. A pipeline that starts automatically when a file arrives using a **Storage events trigger**.
 
-The project explores file readiness checks, conditional processing, audit information, source cleanup, monitoring, and GitHub integration.
+The project explores production grade handling like - 
+ - **Quality Checks:** file metadata validation, before beginning the processing -- 
+ - **conditional processing**
+ - **Auditing** - adding columns in "Copy data" activity
+ - **File Handling** - source cleanup upon successful data copy
+ - **Monitoring** - pipelines executions via "triggers", "scheduled" and "manual" runs
+ - **Version Control:** GitHub integration
 
 ## Architecture
 
