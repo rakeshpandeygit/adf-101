@@ -1,0 +1,18 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "df-training-adf-dev-eus-001"
+		},
+		"ls_training_adf_retail_101_connectionString": {
+			"value": ""
+		},
+		"ls_training_adf_retail_101_lake_accountKey": {
+			"value": ""
+		},
+		"ls_training_adf_retail_101_lake_properties_typeProperties_url": {
+			"value": "https://sttrainingadfdeveus001.dfs.core.windows.net/"
+		}
+	}
+}
