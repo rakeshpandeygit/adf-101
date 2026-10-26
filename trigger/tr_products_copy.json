@@ -1,0 +1,22 @@
+{
+	"name": "tr_products_copy",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Day",
+				"interval": 1,
+				"startTime": "2026-10-25T00:15:00",
+				"timeZone": "Central Standard Time",
+				"schedule": {
+					"hours": [
+						0
+					]
+				}
+			}
+		}
+	}
+}
