@@ -13,6 +13,9 @@
 		},
 		"ls_training_adf_retail_101_lake_properties_typeProperties_url": {
 			"value": "https://sttrainingadfdeveus001.dfs.core.windows.net/"
+		},
+		"tr_products_copy_on_arrival_properties_typeProperties_scope": {
+			"value": "/subscriptions/18f82c1d-5f8a-45a4-bbae-460a3807decb/resourceGroups/rg-training-adf-dev-eus-001/providers/Microsoft.Storage/storageAccounts/sttrainingadfdeveus002"
 		}
 	}
 }

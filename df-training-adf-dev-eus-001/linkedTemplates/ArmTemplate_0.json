@@ -18,6 +18,10 @@
 		"ls_training_adf_retail_101_lake_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://sttrainingadfdeveus001.dfs.core.windows.net/"
+		},
+		"tr_products_copy_on_arrival_properties_typeProperties_scope": {
+			"type": "string",
+			"defaultValue": "/subscriptions/18f82c1d-5f8a-45a4-bbae-460a3807decb/resourceGroups/rg-training-adf-dev-eus-001/providers/Microsoft.Storage/storageAccounts/sttrainingadfdeveus002"
 		}
 	},
 	"variables": {
@@ -392,12 +396,262 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/pl_retail_product_raw_file_process_on_arrival')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "retaildb project pipeline to ingest file from blob to adls gen2",
+				"activities": [
+					{
+						"name": "fetch_product_file_metadata",
+						"type": "GetMetadata",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "product_csv_blob",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"fieldList": [
+								"exists",
+								"columnCount",
+								"size",
+								"itemName"
+							],
+							"storeSettings": {
+								"type": "AzureBlobStorageReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							},
+							"formatSettings": {
+								"type": "DelimitedTextReadSettings"
+							}
+						}
+					},
+					{
+						"name": "validate_metadata",
+						"type": "IfCondition",
+						"dependsOn": [
+							{
+								"activity": "fetch_product_file_metadata",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@equals(activity('fetch_product_file_metadata').output.columnCount,6)",
+								"type": "Expression"
+							},
+							"ifFalseActivities": [
+								{
+									"name": "file_format_issue",
+									"type": "Fail",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"message": "file format issue - Num Columns not 6",
+										"errorCode": "420"
+									}
+								}
+							],
+							"ifTrueActivities": [
+								{
+									"name": "success_landing",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "DelimitedTextSource",
+											"additionalColumns": [
+												{
+													"name": "_file_nm",
+													"value": {
+														"value": "@activity('fetch_product_file_metadata').output.itemName",
+														"type": "Expression"
+													}
+												},
+												{
+													"name": "_file_size_bytes",
+													"value": {
+														"value": "@activity('fetch_product_file_metadata').output.size",
+														"type": "Expression"
+													}
+												},
+												{
+													"name": "_ingestion_dt",
+													"value": {
+														"value": "@pipeline().TriggerTime",
+														"type": "Expression"
+													}
+												},
+												{
+													"name": "_run_id",
+													"value": {
+														"value": "@pipeline().RunId",
+														"type": "Expression"
+													}
+												}
+											],
+											"storeSettings": {
+												"type": "AzureBlobStorageReadSettings",
+												"recursive": true,
+												"enablePartitionDiscovery": false
+											},
+											"formatSettings": {
+												"type": "DelimitedTextReadSettings"
+											}
+										},
+										"sink": {
+											"type": "DelimitedTextSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings",
+												"metadata": [
+													{
+														"name": "_ingestion_date",
+														"value": {
+															"value": "@pipeline().TriggerTime",
+															"type": "Expression"
+														}
+													},
+													{
+														"name": "_run_id",
+														"value": {
+															"value": "@pipeline().RunId",
+															"type": "Expression"
+														}
+													},
+													{
+														"name": "_file_name",
+														"value": {
+															"value": "@activity('fetch_product_file_metadata').output.itemName",
+															"type": "Expression"
+														}
+													},
+													{
+														"name": "_file_size_bytes",
+														"value": {
+															"value": "@activity('fetch_product_file_metadata').output.size",
+															"type": "Expression"
+														}
+													}
+												]
+											},
+											"formatSettings": {
+												"type": "DelimitedTextWriteSettings",
+												"quoteAllText": true,
+												"fileExtension": ".txt"
+											}
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "product_csv_blob",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "product_csv_lake",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									]
+								},
+								{
+									"name": "remove_src_file",
+									"description": "remove the source file upon successful ingestion to adls gen2",
+									"type": "Delete",
+									"dependsOn": [
+										{
+											"activity": "success_landing",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"dataset": {
+											"referenceName": "product_csv_blob",
+											"type": "DatasetReference",
+											"parameters": {}
+										},
+										"logStorageSettings": {
+											"linkedServiceName": {
+												"referenceName": "ls_training_adf_retail_101_lake",
+												"type": "LinkedServiceReference"
+											},
+											"path": "retail-raw/retail_ingestion_logs"
+										},
+										"enableLogging": true,
+										"storeSettings": {
+											"type": "AzureBlobStorageReadSettings",
+											"recursive": false,
+											"enablePartitionDiscovery": false
+										}
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "retaildb project"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/product_csv_blob')]",
+				"[concat(variables('factoryId'), '/datasets/product_csv_lake')]",
+				"[concat(variables('factoryId'), '/linkedServices/ls_training_adf_retail_101_lake')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/tr_products_copy')]",
 			"type": "Microsoft.DataFactory/factories/triggers",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"annotations": [],
-				"runtimeState": "Started",
+				"runtimeState": "Stopped",
 				"pipelines": [
 					{
 						"pipelineReference": {
@@ -427,6 +681,37 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/pipelines/pl-retail-product-raw')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/tr_products_copy_on_arrival')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "pl_retail_product_raw_file_process_on_arrival",
+							"type": "PipelineReference"
+						},
+						"parameters": {}
+					}
+				],
+				"type": "BlobEventsTrigger",
+				"typeProperties": {
+					"blobPathBeginsWith": "/src/blobs/",
+					"blobPathEndsWith": "products.csv",
+					"ignoreEmptyBlobs": true,
+					"scope": "[parameters('tr_products_copy_on_arrival_properties_typeProperties_scope')]",
+					"events": [
+						"Microsoft.Storage.BlobCreated"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/pl_retail_product_raw_file_process_on_arrival')]"
 			]
 		}
 	]
