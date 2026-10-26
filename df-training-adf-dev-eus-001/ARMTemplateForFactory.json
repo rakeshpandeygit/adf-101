@@ -387,10 +387,10 @@
 						"timeZone": "Central Standard Time",
 						"schedule": {
 							"minutes": [
-								35
+								20
 							],
 							"hours": [
-								0
+								3
 							]
 						}
 					}
