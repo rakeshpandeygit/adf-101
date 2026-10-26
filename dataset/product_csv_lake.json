@@ -1,0 +1,27 @@
+{
+	"name": "product_csv_lake",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_training_adf_retail_101_lake",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "retaildb project"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "products.csv",
+				"folderPath": "landing",
+				"fileSystem": "retail-raw"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": false,
+			"quoteChar": "\""
+		},
+		"schema": []
+	}
+}
