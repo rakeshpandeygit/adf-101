@@ -227,6 +227,36 @@
 									"typeProperties": {
 										"source": {
 											"type": "DelimitedTextSource",
+											"additionalColumns": [
+												{
+													"name": "_file_nm",
+													"value": {
+														"value": "@activity('fetch_product_file_metadata').output.itemName",
+														"type": "Expression"
+													}
+												},
+												{
+													"name": "_file_size_bytes",
+													"value": {
+														"value": "@activity('fetch_product_file_metadata').output.size",
+														"type": "Expression"
+													}
+												},
+												{
+													"name": "_ingestion_dt",
+													"value": {
+														"value": "@pipeline().TriggerTime",
+														"type": "Expression"
+													}
+												},
+												{
+													"name": "_run_id",
+													"value": {
+														"value": "@pipeline().RunId",
+														"type": "Expression"
+													}
+												}
+											],
 											"storeSettings": {
 												"type": "AzureBlobStorageReadSettings",
 												"recursive": true,
