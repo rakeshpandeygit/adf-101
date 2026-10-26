@@ -120,7 +120,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/Copy data')]",
+			"name": "[concat(parameters('factoryName'), '/pl-retail-product-raw')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -137,9 +137,8 @@
 								"type": "DatasetReference",
 								"parameters": {}
 							},
-							"timeout": "0.00:03:00",
-							"sleep": 30,
-							"minimumSize": 1
+							"timeout": "0.00:01:00",
+							"sleep": 10
 						}
 					},
 					{
@@ -372,7 +371,7 @@
 				"pipelines": [
 					{
 						"pipelineReference": {
-							"referenceName": "Copy data",
+							"referenceName": "pl-retail-product-raw",
 							"type": "PipelineReference"
 						},
 						"parameters": {}
@@ -397,7 +396,7 @@
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/Copy data')]"
+				"[concat(variables('factoryId'), '/pipelines/pl-retail-product-raw')]"
 			]
 		}
 	]
