@@ -1,0 +1,26 @@
+{
+	"name": "product_csv_blob",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_training_adf_retail_101",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "retaildb project"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "products.csv",
+				"container": "src"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	}
+}
