@@ -691,9 +691,10 @@
 				"typeProperties": {
 					"location": {
 						"type": "HttpServerLocation",
-						"relativeUrl": "file_uploads/349536/attachments/c28/5f b/25b/orders.csv"
+						"relativeUrl": "file_uploads/349536/attachments/c28/5fb/25b/orders.csv"
 					},
 					"columnDelimiter": ",",
+					"rowDelimiter": "\n",
 					"escapeChar": "\\",
 					"firstRowAsHeader": true,
 					"quoteChar": "\""
