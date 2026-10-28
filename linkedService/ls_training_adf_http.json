@@ -5,7 +5,7 @@
 		"type": "HttpServer",
 		"typeProperties": {
 			"url": "https://files.cdn.thinkific.com",
-			"enableServerCertificateValidation": false,
+			"enableServerCertificateValidation": true,
 			"authenticationType": "Anonymous"
 		}
 	}
