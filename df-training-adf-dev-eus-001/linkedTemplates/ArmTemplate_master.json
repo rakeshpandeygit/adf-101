@@ -7,6 +7,10 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "df-training-adf-dev-eus-001"
 		},
+		"ls_training_adf_adls_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'ls_training_adf_adls'"
+		},
 		"ls_training_adf_retail_101_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'ls_training_adf_retail_101'"
@@ -14,6 +18,14 @@
 		"ls_training_adf_retail_101_lake_accountKey": {
 			"type": "secureString",
 			"metadata": "Secure string for 'accountKey' of 'ls_training_adf_retail_101_lake'"
+		},
+		"ls_training_adf_adls_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://sttrainingadfdeveus001.dfs.core.windows.net/"
+		},
+		"ls_training_adf_http_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://files.cdn.thinkific.com"
 		},
 		"ls_training_adf_retail_101_lake_properties_typeProperties_url": {
 			"type": "string",
@@ -50,11 +62,20 @@
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
 					},
+					"ls_training_adf_adls_accountKey": {
+						"value": "[parameters('ls_training_adf_adls_accountKey')]"
+					},
 					"ls_training_adf_retail_101_connectionString": {
 						"value": "[parameters('ls_training_adf_retail_101_connectionString')]"
 					},
 					"ls_training_adf_retail_101_lake_accountKey": {
 						"value": "[parameters('ls_training_adf_retail_101_lake_accountKey')]"
+					},
+					"ls_training_adf_adls_properties_typeProperties_url": {
+						"value": "[parameters('ls_training_adf_adls_properties_typeProperties_url')]"
+					},
+					"ls_training_adf_http_properties_typeProperties_url": {
+						"value": "[parameters('ls_training_adf_http_properties_typeProperties_url')]"
 					},
 					"ls_training_adf_retail_101_lake_properties_typeProperties_url": {
 						"value": "[parameters('ls_training_adf_retail_101_lake_properties_typeProperties_url')]"
