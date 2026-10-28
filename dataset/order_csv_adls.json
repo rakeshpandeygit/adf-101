@@ -22,6 +22,23 @@
 			"firstRowAsHeader": true,
 			"quoteChar": "\""
 		},
-		"schema": []
+		"schema": [
+			{
+				"name": "order_id",
+				"type": "String"
+			},
+			{
+				"name": "order_date",
+				"type": "String"
+			},
+			{
+				"name": "order_customer_id",
+				"type": "String"
+			},
+			{
+				"name": "order_status",
+				"type": "String"
+			}
+		]
 	}
 }

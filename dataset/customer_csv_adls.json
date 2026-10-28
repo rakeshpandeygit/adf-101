@@ -1,0 +1,28 @@
+{
+	"name": "customer_csv_adls",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_training_adf_retail_101_lake",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "ordering project"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "customers_final-230928-140656.csv",
+				"folderPath": "raw",
+				"fileSystem": "retail-raw"
+			},
+			"columnDelimiter": ",",
+			"rowDelimiter": "\n",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	}
+}

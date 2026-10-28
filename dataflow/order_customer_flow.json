@@ -1,5 +1,5 @@
 {
-	"name": "order_customer",
+	"name": "order_customer_flow",
 	"properties": {
 		"type": "MappingDataFlow",
 		"typeProperties": {
@@ -19,14 +19,40 @@
 					"name": "customerAzSqlDb"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "final_order_customer_adls",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
 			"transformations": [
 				{
-					"name": "join1"
+					"name": "ordCustJoin"
+				},
+				{
+					"name": "selectColumns"
+				},
+				{
+					"name": "filterCityCaguas"
+				},
+				{
+					"name": "sort1"
+				},
+				{
+					"name": "aggregate1"
 				}
 			],
 			"scriptLines": [
-				"source(allowSchemaDrift: true,",
+				"source(output(",
+				"          order_id as string,",
+				"          order_date as string,",
+				"          order_customer_id as string,",
+				"          order_status as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     inferDriftedColumnTypes: true,",
 				"     ignoreNoFilesFound: false) ~> orderCsv",
@@ -43,14 +69,38 @@
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     inferDriftedColumnTypes: true,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> customerAzSqlDb",
-				"orderCsv, customerAzSqlDb join(ERROR_FUNCTION('') == customer_id,",
+				"orderCsv, customerAzSqlDb join(toInteger(order_customer_id) == customer_id,",
 				"     joinType:'inner',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
-				"     broadcast: 'auto')~> join1"
+				"     broadcast: 'auto')~> ordCustJoin",
+				"ordCustJoin select(mapColumn(",
+				"          order_id,",
+				"          order_date,",
+				"          order_status,",
+				"          customer_id,",
+				"          customer_fname,",
+				"          customer_lname,",
+				"          customer_street,",
+				"          customer_city,",
+				"          customer_state,",
+				"          customer_zipcode",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColumns",
+				"selectColumns filter(equalsIgnoreCase(customer_city,\"Caguas\")) ~> filterCityCaguas",
+				"aggregate1 sort(desc(Total_Order, false)) ~> sort1",
+				"filterCityCaguas aggregate(groupBy(order_status),",
+				"     Total_Order = count(order_id)) ~> aggregate1",
+				"sort1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sink1"
 			]
 		}
 	}
