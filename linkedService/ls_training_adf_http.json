@@ -1,0 +1,12 @@
+{
+	"name": "ls_training_adf_http",
+	"properties": {
+		"annotations": [],
+		"type": "HttpServer",
+		"typeProperties": {
+			"url": "https://files.cdn.thinkific.com/file_uploads/349536/attachments/c28/5f b/25b/orders.csv",
+			"enableServerCertificateValidation": false,
+			"authenticationType": "Anonymous"
+		}
+	}
+}
