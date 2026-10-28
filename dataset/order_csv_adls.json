@@ -1,0 +1,27 @@
+{
+	"name": "order_csv_adls",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_training_adf_retail_101_lake",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "ordering project"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "orders.csv",
+				"folderPath": "raw",
+				"fileSystem": "retail-raw"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	}
+}
