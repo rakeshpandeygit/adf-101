@@ -1,0 +1,59 @@
+{
+	"name": "customer_sqldb",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_training_adf_sqldb",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "ordering project"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "customer_id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "customer_fname",
+				"type": "varchar"
+			},
+			{
+				"name": "customer_lname",
+				"type": "varchar"
+			},
+			{
+				"name": "customer_email",
+				"type": "varchar"
+			},
+			{
+				"name": "customer_password",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "customer_street",
+				"type": "varchar"
+			},
+			{
+				"name": "customer_city",
+				"type": "varchar"
+			},
+			{
+				"name": "customer_state",
+				"type": "char"
+			},
+			{
+				"name": "customer_zipcode",
+				"type": "int",
+				"precision": 10
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "customers"
+		}
+	}
+}

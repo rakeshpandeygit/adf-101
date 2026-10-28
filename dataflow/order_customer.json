@@ -1,0 +1,57 @@
+{
+	"name": "order_customer",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "order_csv_adls",
+						"type": "DatasetReference"
+					},
+					"name": "orderCsv"
+				},
+				{
+					"dataset": {
+						"referenceName": "customer_sqldb",
+						"type": "DatasetReference"
+					},
+					"name": "customerAzSqlDb"
+				}
+			],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "join1"
+				}
+			],
+			"scriptLines": [
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     inferDriftedColumnTypes: true,",
+				"     ignoreNoFilesFound: false) ~> orderCsv",
+				"source(output(",
+				"          customer_id as integer,",
+				"          customer_fname as string,",
+				"          customer_lname as string,",
+				"          customer_email as string,",
+				"          customer_password as integer,",
+				"          customer_street as string,",
+				"          customer_city as string,",
+				"          customer_state as string,",
+				"          customer_zipcode as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     inferDriftedColumnTypes: true,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> customerAzSqlDb",
+				"orderCsv, customerAzSqlDb join(ERROR_FUNCTION('') == customer_id,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join1"
+			]
+		}
+	}
+}
