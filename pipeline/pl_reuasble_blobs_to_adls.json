@@ -50,17 +50,44 @@
 				"inputs": [
 					{
 						"referenceName": "ds_http_csv_storage_acct_002",
-						"type": "DatasetReference"
+						"type": "DatasetReference",
+						"parameters": {
+							"baseURL": {
+								"value": "@pipeline().parameters.baseURL",
+								"type": "Expression"
+							},
+							"relativeURL": {
+								"value": "@pipeline().parameters.relativeURL",
+								"type": "Expression"
+							}
+						}
 					}
 				],
 				"outputs": [
 					{
 						"referenceName": "ds_adls_csv_storage_acct_001_raw_reusable_folder",
-						"type": "DatasetReference"
+						"type": "DatasetReference",
+						"parameters": {
+							"fileName": {
+								"value": "@pipeline().parameters.fileName",
+								"type": "Expression"
+							}
+						}
 					}
 				]
 			}
 		],
+		"parameters": {
+			"baseURL": {
+				"type": "string"
+			},
+			"relativeURL": {
+				"type": "string"
+			},
+			"fileName": {
+				"type": "string"
+			}
+		},
 		"folder": {
 			"name": "reusable job"
 		},

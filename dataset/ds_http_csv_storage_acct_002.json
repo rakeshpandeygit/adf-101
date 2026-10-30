@@ -3,7 +3,21 @@
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "ls_http_storage_acct_002",
-			"type": "LinkedServiceReference"
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"baseURL": {
+					"value": "@dataset().baseURL",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"baseURL": {
+				"type": "string"
+			},
+			"relativeURL": {
+				"type": "string"
+			}
 		},
 		"folder": {
 			"name": "reusable dataset"
@@ -13,7 +27,10 @@
 		"typeProperties": {
 			"location": {
 				"type": "HttpServerLocation",
-				"relativeUrl": "src/categories.csv"
+				"relativeUrl": {
+					"value": "@dataset().relativeURL",
+					"type": "Expression"
+				}
 			},
 			"columnDelimiter": ",",
 			"rowDelimiter": "\n",

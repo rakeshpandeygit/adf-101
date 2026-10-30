@@ -2,8 +2,13 @@
 	"name": "ds_adls_csv_storage_acct_001_raw_reusable_folder",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "ls_training_adf_adls",
+			"referenceName": "ls_adls_storage_acct_001_reusable",
 			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"fileName": {
+				"type": "string"
+			}
 		},
 		"folder": {
 			"name": "reusable dataset"
@@ -13,7 +18,10 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"fileName": "categories.csv",
+				"fileName": {
+					"value": "@dataset().fileName",
+					"type": "Expression"
+				},
 				"folderPath": "raw-reusable",
 				"fileSystem": "retail-raw"
 			},
