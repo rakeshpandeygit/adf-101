@@ -2,10 +2,16 @@
 	"name": "ls_http_storage_acct_002",
 	"properties": {
 		"description": "creating this LS to access blob (csv) through url",
+		"parameters": {
+			"baseURL": {
+				"type": "string",
+				"defaultValue": "https://sttrainingadfdeveus002.blob.core.windows.net/"
+			}
+		},
 		"annotations": [],
 		"type": "HttpServer",
 		"typeProperties": {
-			"url": "https://sttrainingadfdeveus002.blob.core.windows.net/",
+			"url": "@{linkedService().baseURL}",
 			"enableServerCertificateValidation": true,
 			"authenticationType": "Anonymous"
 		}
