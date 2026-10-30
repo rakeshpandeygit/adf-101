@@ -19,6 +19,14 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'accountKey' of 'ls_training_adf_retail_101_lake'"
 		},
+		"ls_training_adf_sqldb_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'ls_training_adf_sqldb'"
+		},
+		"ls_http_storage_acct_002_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://sttrainingadfdeveus002.blob.core.windows.net/"
+		},
 		"ls_training_adf_adls_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://sttrainingadfdeveus001.dfs.core.windows.net/"
@@ -30,6 +38,18 @@
 		"ls_training_adf_retail_101_lake_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://sttrainingadfdeveus001.dfs.core.windows.net/"
+		},
+		"ls_training_adf_sqldb_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "sql-rp-training-db-dev-eus-001.database.windows.net"
+		},
+		"ls_training_adf_sqldb_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "sqldb-customer-orders-dev-001"
+		},
+		"ls_training_adf_sqldb_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "sqladmin"
 		},
 		"tr_products_copy_on_arrival_properties_typeProperties_scope": {
 			"type": "string",
@@ -71,6 +91,12 @@
 					"ls_training_adf_retail_101_lake_accountKey": {
 						"value": "[parameters('ls_training_adf_retail_101_lake_accountKey')]"
 					},
+					"ls_training_adf_sqldb_password": {
+						"value": "[parameters('ls_training_adf_sqldb_password')]"
+					},
+					"ls_http_storage_acct_002_properties_typeProperties_url": {
+						"value": "[parameters('ls_http_storage_acct_002_properties_typeProperties_url')]"
+					},
 					"ls_training_adf_adls_properties_typeProperties_url": {
 						"value": "[parameters('ls_training_adf_adls_properties_typeProperties_url')]"
 					},
@@ -80,12 +106,41 @@
 					"ls_training_adf_retail_101_lake_properties_typeProperties_url": {
 						"value": "[parameters('ls_training_adf_retail_101_lake_properties_typeProperties_url')]"
 					},
+					"ls_training_adf_sqldb_properties_typeProperties_server": {
+						"value": "[parameters('ls_training_adf_sqldb_properties_typeProperties_server')]"
+					},
+					"ls_training_adf_sqldb_properties_typeProperties_database": {
+						"value": "[parameters('ls_training_adf_sqldb_properties_typeProperties_database')]"
+					},
+					"ls_training_adf_sqldb_properties_typeProperties_userName": {
+						"value": "[parameters('ls_training_adf_sqldb_properties_typeProperties_userName')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "df-training-adf-dev-eus-001_ArmTemplate_1",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_1.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
 					"tr_products_copy_on_arrival_properties_typeProperties_scope": {
 						"value": "[parameters('tr_products_copy_on_arrival_properties_typeProperties_scope')]"
 					}
 				}
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'df-training-adf-dev-eus-001_ArmTemplate_0')]"
+			]
 		}
 	]
 }

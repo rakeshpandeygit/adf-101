@@ -19,6 +19,14 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'accountKey' of 'ls_training_adf_retail_101_lake'"
 		},
+		"ls_training_adf_sqldb_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'ls_training_adf_sqldb'"
+		},
+		"ls_http_storage_acct_002_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://sttrainingadfdeveus002.blob.core.windows.net/"
+		},
 		"ls_training_adf_adls_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://sttrainingadfdeveus001.dfs.core.windows.net/"
@@ -30,6 +38,18 @@
 		"ls_training_adf_retail_101_lake_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://sttrainingadfdeveus001.dfs.core.windows.net/"
+		},
+		"ls_training_adf_sqldb_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "sql-rp-training-db-dev-eus-001.database.windows.net"
+		},
+		"ls_training_adf_sqldb_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "sqldb-customer-orders-dev-001"
+		},
+		"ls_training_adf_sqldb_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "sqladmin"
 		},
 		"tr_products_copy_on_arrival_properties_typeProperties_scope": {
 			"type": "string",
@@ -377,6 +397,112 @@
 								"parameters": {}
 							}
 						]
+					},
+					{
+						"name": "customer_adls_to_azsqldb",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"writeBehavior": "upsert",
+								"upsertSettings": {
+									"useTempDB": true,
+									"keys": [
+										"customer_id"
+									]
+								},
+								"sqlWriterUseTableLock": false,
+								"tableOption": "autoCreate",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "customer_csv_adls",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "customer_sqldb",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "order_customer_flow",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "order_http_to_sdls",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "customer_adls_to_azsqldb",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "order_customer_flow",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"orderCsv": {},
+									"customerAzSqlDb": {},
+									"sink1": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
 					}
 				],
 				"policy": {
@@ -389,7 +515,10 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/order_csv_http')]",
-				"[concat(variables('factoryId'), '/datasets/order_csv_adls')]"
+				"[concat(variables('factoryId'), '/datasets/order_csv_adls')]",
+				"[concat(variables('factoryId'), '/datasets/customer_csv_adls')]",
+				"[concat(variables('factoryId'), '/datasets/customer_sqldb')]",
+				"[concat(variables('factoryId'), '/dataflows/order_customer_flow')]"
 			]
 		},
 		{
@@ -643,6 +772,311 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/pl_reuasble_blobs_to_adls')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "param_copy_job",
+						"description": "Parameterizing copy activity",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.00:10:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_adls_csv_raw_reusable_folder",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_adls_csv_raw_reusable_folder",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "reusable job"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_adls_csv_raw_reusable_folder')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/customer_csv_adls')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_training_adf_retail_101_lake",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "ordering project"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "customers_final-230928-140656.csv",
+						"folderPath": "raw",
+						"fileSystem": "retail-raw"
+					},
+					"columnDelimiter": ",",
+					"rowDelimiter": "\n",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_training_adf_retail_101_lake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/customer_sqldb')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_training_adf_sqldb",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "ordering project"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "customer_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "customer_fname",
+						"type": "varchar"
+					},
+					{
+						"name": "customer_lname",
+						"type": "varchar"
+					},
+					{
+						"name": "customer_email",
+						"type": "varchar"
+					},
+					{
+						"name": "customer_password",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "customer_street",
+						"type": "varchar"
+					},
+					{
+						"name": "customer_city",
+						"type": "varchar"
+					},
+					{
+						"name": "customer_state",
+						"type": "char"
+					},
+					{
+						"name": "customer_zipcode",
+						"type": "int",
+						"precision": 10
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "customers"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_training_adf_sqldb')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_adls_csv_raw_reusable_folder')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_training_adf_adls",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "categories.csv",
+						"folderPath": "raw-reusable",
+						"fileSystem": "retail-raw"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": false,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_training_adf_adls')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_blob_csv_src_folder')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_training_adf_retail_101",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "categories.csv",
+						"container": "src"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "1",
+						"type": "String"
+					},
+					{
+						"name": "2",
+						"type": "String"
+					},
+					{
+						"name": "Football",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_training_adf_retail_101')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_http_csv_src_folder')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_http_storage_acct_002",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "HttpServerLocation",
+						"relativeUrl": "src/categories.csv"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": false,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_http_storage_acct_002')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/final_order_customer_adls')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_training_adf_adls",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "ordering project"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "curated",
+						"fileSystem": "retail-raw"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_training_adf_adls')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/order_csv_adls')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -668,7 +1102,24 @@
 					"firstRowAsHeader": true,
 					"quoteChar": "\""
 				},
-				"schema": []
+				"schema": [
+					{
+						"name": "order_id",
+						"type": "String"
+					},
+					{
+						"name": "order_date",
+						"type": "String"
+					},
+					{
+						"name": "order_customer_id",
+						"type": "String"
+					},
+					{
+						"name": "order_status",
+						"type": "String"
+					}
+				]
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/ls_training_adf_retail_101_lake')]"
@@ -769,6 +1220,22 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/ls_http_storage_acct_002')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "creating this LS to access blob (csv) through url",
+				"annotations": [],
+				"type": "HttpServer",
+				"typeProperties": {
+					"url": "[parameters('ls_http_storage_acct_002_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ls_training_adf_adls')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
@@ -827,6 +1294,29 @@
 					"accountKey": {
 						"type": "SecureString",
 						"value": "[parameters('ls_training_adf_retail_101_lake_accountKey')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_training_adf_sqldb')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Connect to Azure SQL DB",
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"server": "[parameters('ls_training_adf_sqldb_properties_typeProperties_server')]",
+					"database": "[parameters('ls_training_adf_sqldb_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": false,
+					"authenticationType": "SQL",
+					"userName": "[parameters('ls_training_adf_sqldb_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('ls_training_adf_sqldb_password')]"
 					}
 				}
 			},
@@ -899,6 +1389,120 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/pipelines/pl_retail_product_raw_file_process_on_arrival')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/order_customer_flow')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "order_csv_adls",
+								"type": "DatasetReference"
+							},
+							"name": "orderCsv"
+						},
+						{
+							"dataset": {
+								"referenceName": "customer_sqldb",
+								"type": "DatasetReference"
+							},
+							"name": "customerAzSqlDb"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "final_order_customer_adls",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "ordCustJoin"
+						},
+						{
+							"name": "selectColumns"
+						},
+						{
+							"name": "filterCityCaguas"
+						},
+						{
+							"name": "sort1"
+						},
+						{
+							"name": "aggregate1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          order_id as string,",
+						"          order_date as string,",
+						"          order_customer_id as string,",
+						"          order_status as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     inferDriftedColumnTypes: true,",
+						"     ignoreNoFilesFound: false) ~> orderCsv",
+						"source(output(",
+						"          customer_id as integer,",
+						"          customer_fname as string,",
+						"          customer_lname as string,",
+						"          customer_email as string,",
+						"          customer_password as integer,",
+						"          customer_street as string,",
+						"          customer_city as string,",
+						"          customer_state as string,",
+						"          customer_zipcode as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> customerAzSqlDb",
+						"orderCsv, customerAzSqlDb join(toInteger(order_customer_id) == customer_id,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> ordCustJoin",
+						"ordCustJoin select(mapColumn(",
+						"          order_id,",
+						"          order_date,",
+						"          order_status,",
+						"          customer_id,",
+						"          customer_fname,",
+						"          customer_lname,",
+						"          customer_street,",
+						"          customer_city,",
+						"          customer_state,",
+						"          customer_zipcode",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> selectColumns",
+						"selectColumns filter(equalsIgnoreCase(customer_city,\"Caguas\")) ~> filterCityCaguas",
+						"aggregate1 sort(desc(Total_Order, false)) ~> sort1",
+						"filterCityCaguas aggregate(groupBy(order_status),",
+						"     Total_Order = count(order_id)) ~> aggregate1",
+						"sort1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/order_csv_adls')]",
+				"[concat(variables('factoryId'), '/datasets/customer_sqldb')]",
+				"[concat(variables('factoryId'), '/datasets/final_order_customer_adls')]"
 			]
 		}
 	]
