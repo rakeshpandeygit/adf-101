@@ -1,0 +1,13 @@
+{
+	"name": "ls_http_storage_acct_002",
+	"properties": {
+		"description": "creating this LS to access blob (csv) through url",
+		"annotations": [],
+		"type": "HttpServer",
+		"typeProperties": {
+			"url": "https://sttrainingadfdeveus002.blob.core.windows.net/",
+			"enableServerCertificateValidation": true,
+			"authenticationType": "Anonymous"
+		}
+	}
+}
