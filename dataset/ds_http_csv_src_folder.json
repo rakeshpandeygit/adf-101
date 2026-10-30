@@ -1,0 +1,22 @@
+{
+	"name": "ds_http_csv_src_folder",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_http_storage_acct_002",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "HttpServerLocation",
+				"relativeUrl": "src/categories.csv"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": false,
+			"quoteChar": "\""
+		},
+		"schema": []
+	}
+}

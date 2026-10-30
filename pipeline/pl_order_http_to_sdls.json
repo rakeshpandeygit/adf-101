@@ -121,8 +121,8 @@
 				]
 			},
 			{
-				"name": "Source Copy Check",
-				"type": "IfCondition",
+				"name": "order_customer_flow",
+				"type": "ExecuteDataFlow",
 				"dependsOn": [
 					{
 						"activity": "order_http_to_sdls",
@@ -137,46 +137,24 @@
 						]
 					}
 				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
 				"userProperties": [],
 				"typeProperties": {
-					"ifFalseActivities": [
-						{
-							"name": "Fail1",
-							"type": "Fail",
-							"dependsOn": [],
-							"userProperties": [],
-							"typeProperties": {
-								"message": "Source Data Copy Failed",
-								"errorCode": "420"
-							}
-						}
-					],
-					"ifTrueActivities": [
-						{
-							"name": "order_customer_flow",
-							"type": "ExecuteDataFlow",
-							"dependsOn": [],
-							"policy": {
-								"timeout": "0.12:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"dataflow": {
-									"referenceName": "order_customer_flow",
-									"type": "DataFlowReference"
-								},
-								"compute": {
-									"coreCount": 8,
-									"computeType": "General"
-								},
-								"traceLevel": "Fine"
-							}
-						}
-					]
+					"dataflow": {
+						"referenceName": "order_customer_flow",
+						"type": "DataFlowReference"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
 				}
 			}
 		],

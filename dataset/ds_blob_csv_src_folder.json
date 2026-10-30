@@ -1,0 +1,36 @@
+{
+	"name": "ds_blob_csv_src_folder",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_training_adf_retail_101",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "categories.csv",
+				"container": "src"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "1",
+				"type": "String"
+			},
+			{
+				"name": "2",
+				"type": "String"
+			},
+			{
+				"name": "Football",
+				"type": "String"
+			}
+		]
+	}
+}
