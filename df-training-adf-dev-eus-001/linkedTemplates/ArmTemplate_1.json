@@ -17,6 +17,116 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/order_customer_flow')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "order_csv_adls",
+								"type": "DatasetReference"
+							},
+							"name": "orderCsv"
+						},
+						{
+							"dataset": {
+								"referenceName": "customer_sqldb",
+								"type": "DatasetReference"
+							},
+							"name": "customerAzSqlDb"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "final_order_customer_adls",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "ordCustJoin"
+						},
+						{
+							"name": "selectColumns"
+						},
+						{
+							"name": "filterCityCaguas"
+						},
+						{
+							"name": "sort1"
+						},
+						{
+							"name": "aggregate1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          order_id as string,",
+						"          order_date as string,",
+						"          order_customer_id as string,",
+						"          order_status as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     inferDriftedColumnTypes: true,",
+						"     ignoreNoFilesFound: false) ~> orderCsv",
+						"source(output(",
+						"          customer_id as integer,",
+						"          customer_fname as string,",
+						"          customer_lname as string,",
+						"          customer_email as string,",
+						"          customer_password as integer,",
+						"          customer_street as string,",
+						"          customer_city as string,",
+						"          customer_state as string,",
+						"          customer_zipcode as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> customerAzSqlDb",
+						"orderCsv, customerAzSqlDb join(toInteger(order_customer_id) == customer_id,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> ordCustJoin",
+						"ordCustJoin select(mapColumn(",
+						"          order_id,",
+						"          order_date,",
+						"          order_status,",
+						"          customer_id,",
+						"          customer_fname,",
+						"          customer_lname,",
+						"          customer_street,",
+						"          customer_city,",
+						"          customer_state,",
+						"          customer_zipcode",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> selectColumns",
+						"selectColumns filter(equalsIgnoreCase(customer_city,\"Caguas\")) ~> filterCityCaguas",
+						"aggregate1 sort(desc(Total_Order, false)) ~> sort1",
+						"filterCityCaguas aggregate(groupBy(order_status),",
+						"     Total_Order = count(order_id)) ~> aggregate1",
+						"sort1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/pl_order_http_to_sdls')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -197,7 +307,9 @@
 				},
 				"annotations": []
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/order_customer_flow')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/tr_products_copy')]",

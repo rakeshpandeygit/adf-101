@@ -327,6 +327,50 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/ds_blob_csv_storage_acct_002_cofig_reusable')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_training_adf_retail_101",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "reusable dataset"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "reusable_job_config.csv",
+						"container": "config"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "BaseURL",
+						"type": "String"
+					},
+					{
+						"name": "RelativeURL",
+						"type": "String"
+					},
+					{
+						"name": "fileName",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_training_adf_retail_101')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ds_http_csv_storage_acct_002')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -1077,9 +1121,8 @@
 			"properties": {
 				"activities": [
 					{
-						"name": "param_copy_job",
-						"description": "Parameterizing copy activity",
-						"type": "Copy",
+						"name": "config_file_having_file_list_for_reusable",
+						"type": "Lookup",
 						"dependsOn": [],
 						"policy": {
 							"timeout": "0.00:10:00",
@@ -1093,77 +1136,120 @@
 							"source": {
 								"type": "DelimitedTextSource",
 								"storeSettings": {
-									"type": "HttpReadSettings",
-									"requestMethod": "GET"
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
 								},
 								"formatSettings": {
 									"type": "DelimitedTextReadSettings"
 								}
 							},
-							"sink": {
-								"type": "DelimitedTextSink",
-								"storeSettings": {
-									"type": "AzureBlobFSWriteSettings"
-								},
-								"formatSettings": {
-									"type": "DelimitedTextWriteSettings",
-									"quoteAllText": true,
-									"fileExtension": ".txt"
-								}
-							},
-							"enableStaging": false,
-							"translator": {
-								"type": "TabularTranslator",
-								"typeConversion": true,
-								"typeConversionSettings": {
-									"allowDataTruncation": true,
-									"treatBooleanAsNumber": false
-								}
-							}
-						},
-						"inputs": [
-							{
-								"referenceName": "ds_http_csv_storage_acct_002",
+							"dataset": {
+								"referenceName": "ds_blob_csv_storage_acct_002_cofig_reusable",
 								"type": "DatasetReference",
-								"parameters": {
-									"baseURL": {
-										"value": "@pipeline().parameters.baseURL",
-										"type": "Expression"
-									},
-									"relativeURL": {
-										"value": "@pipeline().parameters.relativeURL",
-										"type": "Expression"
-									}
-								}
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "iterate_over_config_file",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "config_file_having_file_list_for_reusable",
+								"dependencyConditions": [
+									"Succeeded"
+								]
 							}
 						],
-						"outputs": [
-							{
-								"referenceName": "ds_adls_csv_storage_acct_001_raw_reusable_folder",
-								"type": "DatasetReference",
-								"parameters": {
-									"fileName": {
-										"value": "@pipeline().parameters.fileName",
-										"type": "Expression"
-									}
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('config_file_having_file_list_for_reusable').output.value",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "param_copy_job",
+									"description": "Parameterizing copy activity",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.00:10:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "DelimitedTextSource",
+											"storeSettings": {
+												"type": "HttpReadSettings",
+												"requestMethod": "GET"
+											},
+											"formatSettings": {
+												"type": "DelimitedTextReadSettings"
+											}
+										},
+										"sink": {
+											"type": "DelimitedTextSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											},
+											"formatSettings": {
+												"type": "DelimitedTextWriteSettings",
+												"quoteAllText": true,
+												"fileExtension": ".txt"
+											}
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "ds_http_csv_storage_acct_002",
+											"type": "DatasetReference",
+											"parameters": {
+												"baseURL": {
+													"value": "@item().baseURL.value",
+													"type": "Expression"
+												},
+												"relativeURL": {
+													"value": "@item().relativeURL.value",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "ds_adls_csv_storage_acct_001_raw_reusable_folder",
+											"type": "DatasetReference",
+											"parameters": {
+												"fileName": {
+													"value": "@item().fileName.value",
+													"type": "Expression"
+												}
+											}
+										}
+									]
 								}
-							}
-						]
+							]
+						}
 					}
 				],
 				"policy": {
 					"elapsedTimeMetric": {}
-				},
-				"parameters": {
-					"baseURL": {
-						"type": "string"
-					},
-					"relativeURL": {
-						"type": "string"
-					},
-					"fileName": {
-						"type": "string"
-					}
 				},
 				"folder": {
 					"name": "reusable job"
@@ -1171,122 +1257,9 @@
 				"annotations": []
 			},
 			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_blob_csv_storage_acct_002_cofig_reusable')]",
 				"[concat(variables('factoryId'), '/datasets/ds_http_csv_storage_acct_002')]",
 				"[concat(variables('factoryId'), '/datasets/ds_adls_csv_storage_acct_001_raw_reusable_folder')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/order_customer_flow')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "order_csv_adls",
-								"type": "DatasetReference"
-							},
-							"name": "orderCsv"
-						},
-						{
-							"dataset": {
-								"referenceName": "customer_sqldb",
-								"type": "DatasetReference"
-							},
-							"name": "customerAzSqlDb"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "final_order_customer_adls",
-								"type": "DatasetReference"
-							},
-							"name": "sink1"
-						}
-					],
-					"transformations": [
-						{
-							"name": "ordCustJoin"
-						},
-						{
-							"name": "selectColumns"
-						},
-						{
-							"name": "filterCityCaguas"
-						},
-						{
-							"name": "sort1"
-						},
-						{
-							"name": "aggregate1"
-						}
-					],
-					"scriptLines": [
-						"source(output(",
-						"          order_id as string,",
-						"          order_date as string,",
-						"          order_customer_id as string,",
-						"          order_status as string",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     inferDriftedColumnTypes: true,",
-						"     ignoreNoFilesFound: false) ~> orderCsv",
-						"source(output(",
-						"          customer_id as integer,",
-						"          customer_fname as string,",
-						"          customer_lname as string,",
-						"          customer_email as string,",
-						"          customer_password as integer,",
-						"          customer_street as string,",
-						"          customer_city as string,",
-						"          customer_state as string,",
-						"          customer_zipcode as integer",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     isolationLevel: 'READ_UNCOMMITTED',",
-						"     format: 'table') ~> customerAzSqlDb",
-						"orderCsv, customerAzSqlDb join(toInteger(order_customer_id) == customer_id,",
-						"     joinType:'inner',",
-						"     matchType:'exact',",
-						"     ignoreSpaces: false,",
-						"     broadcast: 'auto')~> ordCustJoin",
-						"ordCustJoin select(mapColumn(",
-						"          order_id,",
-						"          order_date,",
-						"          order_status,",
-						"          customer_id,",
-						"          customer_fname,",
-						"          customer_lname,",
-						"          customer_street,",
-						"          customer_city,",
-						"          customer_state,",
-						"          customer_zipcode",
-						"     ),",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> selectColumns",
-						"selectColumns filter(equalsIgnoreCase(customer_city,\"Caguas\")) ~> filterCityCaguas",
-						"aggregate1 sort(desc(Total_Order, false)) ~> sort1",
-						"filterCityCaguas aggregate(groupBy(order_status),",
-						"     Total_Order = count(order_id)) ~> aggregate1",
-						"sort1 sink(allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     umask: 0022,",
-						"     preCommands: [],",
-						"     postCommands: [],",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> sink1"
-					]
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/order_csv_adls')]",
-				"[concat(variables('factoryId'), '/datasets/customer_sqldb')]",
-				"[concat(variables('factoryId'), '/datasets/final_order_customer_adls')]"
 			]
 		}
 	]
