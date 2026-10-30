@@ -1,0 +1,39 @@
+{
+	"name": "ds_blob_csv_storage_acct_002_cofig_reusable",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_training_adf_retail_101",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "reusable dataset"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "reusable_job_config.csv",
+				"container": "config"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "BaseURL",
+				"type": "String"
+			},
+			{
+				"name": "RelativeURL",
+				"type": "String"
+			},
+			{
+				"name": "fileName",
+				"type": "String"
+			}
+		]
+	}
+}

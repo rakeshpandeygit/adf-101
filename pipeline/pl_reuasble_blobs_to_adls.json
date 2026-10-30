@@ -3,9 +3,8 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "param_copy_job",
-				"description": "Parameterizing copy activity",
-				"type": "Copy",
+				"name": "config_file_having_file_list_for_reusable",
+				"type": "Lookup",
 				"dependsOn": [],
 				"policy": {
 					"timeout": "0.00:10:00",
@@ -19,75 +18,117 @@
 					"source": {
 						"type": "DelimitedTextSource",
 						"storeSettings": {
-							"type": "HttpReadSettings",
-							"requestMethod": "GET"
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
 						},
 						"formatSettings": {
 							"type": "DelimitedTextReadSettings"
 						}
 					},
-					"sink": {
-						"type": "DelimitedTextSink",
-						"storeSettings": {
-							"type": "AzureBlobFSWriteSettings"
-						},
-						"formatSettings": {
-							"type": "DelimitedTextWriteSettings",
-							"quoteAllText": true,
-							"fileExtension": ".txt"
-						}
+					"dataset": {
+						"referenceName": "ds_blob_csv_storage_acct_002_cofig_reusable",
+						"type": "DatasetReference"
 					},
-					"enableStaging": false,
-					"translator": {
-						"type": "TabularTranslator",
-						"typeConversion": true,
-						"typeConversionSettings": {
-							"allowDataTruncation": true,
-							"treatBooleanAsNumber": false
-						}
-					}
-				},
-				"inputs": [
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "iterate_over_config_file",
+				"type": "ForEach",
+				"dependsOn": [
 					{
-						"referenceName": "ds_http_csv_storage_acct_002",
-						"type": "DatasetReference",
-						"parameters": {
-							"baseURL": {
-								"value": "@pipeline().parameters.baseURL",
-								"type": "Expression"
-							},
-							"relativeURL": {
-								"value": "@pipeline().parameters.relativeURL",
-								"type": "Expression"
-							}
-						}
+						"activity": "config_file_having_file_list_for_reusable",
+						"dependencyConditions": [
+							"Succeeded"
+						]
 					}
 				],
-				"outputs": [
-					{
-						"referenceName": "ds_adls_csv_storage_acct_001_raw_reusable_folder",
-						"type": "DatasetReference",
-						"parameters": {
-							"fileName": {
-								"value": "@pipeline().parameters.fileName",
-								"type": "Expression"
-							}
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('config_file_having_file_list_for_reusable').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "param_copy_job",
+							"description": "Parameterizing copy activity",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.00:10:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "HttpReadSettings",
+										"requestMethod": "GET"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_http_csv_storage_acct_002",
+									"type": "DatasetReference",
+									"parameters": {
+										"baseURL": {
+											"value": "@item().baseURL.value",
+											"type": "Expression"
+										},
+										"relativeURL": {
+											"value": "@item().relativeURL.value",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_adls_csv_storage_acct_001_raw_reusable_folder",
+									"type": "DatasetReference",
+									"parameters": {
+										"fileName": {
+											"value": "@item().fileName.value",
+											"type": "Expression"
+										}
+									}
+								}
+							]
 						}
-					}
-				]
+					]
+				}
 			}
 		],
-		"parameters": {
-			"baseURL": {
-				"type": "string"
-			},
-			"relativeURL": {
-				"type": "string"
-			},
-			"fileName": {
-				"type": "string"
-			}
-		},
 		"folder": {
 			"name": "reusable job"
 		},
