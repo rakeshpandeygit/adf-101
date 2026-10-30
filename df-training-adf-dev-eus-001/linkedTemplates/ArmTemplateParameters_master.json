@@ -5,6 +5,9 @@
 		"factoryName": {
 			"value": "df-training-adf-dev-eus-001"
 		},
+		"ls_adls_storage_acct_001_reusable_accountKey": {
+			"value": ""
+		},
 		"ls_training_adf_adls_accountKey": {
 			"value": ""
 		},
@@ -17,8 +20,11 @@
 		"ls_training_adf_sqldb_password": {
 			"value": ""
 		},
+		"ls_adls_storage_acct_001_reusable_properties_typeProperties_url": {
+			"value": "https://sttrainingadfdeveus001.dfs.core.windows.net/"
+		},
 		"ls_http_storage_acct_002_properties_typeProperties_url": {
-			"value": "https://sttrainingadfdeveus002.blob.core.windows.net/"
+			"value": "@{linkedService().baseURL}"
 		},
 		"ls_training_adf_adls_properties_typeProperties_url": {
 			"value": "https://sttrainingadfdeveus001.dfs.core.windows.net/"

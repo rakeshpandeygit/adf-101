@@ -7,6 +7,10 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "df-training-adf-dev-eus-001"
 		},
+		"ls_adls_storage_acct_001_reusable_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'ls_adls_storage_acct_001_reusable'"
+		},
 		"ls_training_adf_adls_accountKey": {
 			"type": "secureString",
 			"metadata": "Secure string for 'accountKey' of 'ls_training_adf_adls'"
@@ -23,9 +27,13 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'ls_training_adf_sqldb'"
 		},
+		"ls_adls_storage_acct_001_reusable_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://sttrainingadfdeveus001.dfs.core.windows.net/"
+		},
 		"ls_http_storage_acct_002_properties_typeProperties_url": {
 			"type": "string",
-			"defaultValue": "https://sttrainingadfdeveus002.blob.core.windows.net/"
+			"defaultValue": "@{linkedService().baseURL}"
 		},
 		"ls_training_adf_adls_properties_typeProperties_url": {
 			"type": "string",
@@ -57,11 +65,33 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/ls_adls_storage_acct_001_reusable')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('ls_adls_storage_acct_001_reusable_properties_typeProperties_url')]",
+					"accountKey": {
+						"type": "SecureString",
+						"value": "[parameters('ls_adls_storage_acct_001_reusable_accountKey')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ls_http_storage_acct_002')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"description": "creating this LS to access blob (csv) through url",
+				"parameters": {
+					"baseURL": {
+						"type": "string"
+					}
+				},
 				"annotations": [],
 				"type": "HttpServer",
 				"typeProperties": {
@@ -262,8 +292,13 @@
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"linkedServiceName": {
-					"referenceName": "ls_training_adf_adls",
+					"referenceName": "ls_adls_storage_acct_001_reusable",
 					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"fileName": {
+						"type": "string"
+					}
 				},
 				"folder": {
 					"name": "reusable dataset"
@@ -273,7 +308,10 @@
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobFSLocation",
-						"fileName": "categories.csv",
+						"fileName": {
+							"value": "@dataset().fileName",
+							"type": "Expression"
+						},
 						"folderPath": "raw-reusable",
 						"fileSystem": "retail-raw"
 					},
@@ -285,7 +323,7 @@
 				"schema": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_training_adf_adls')]"
+				"[concat(variables('factoryId'), '/linkedServices/ls_adls_storage_acct_001_reusable')]"
 			]
 		},
 		{
@@ -295,7 +333,21 @@
 			"properties": {
 				"linkedServiceName": {
 					"referenceName": "ls_http_storage_acct_002",
-					"type": "LinkedServiceReference"
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"baseURL": {
+							"value": "@dataset().baseURL",
+							"type": "Expression"
+						}
+					}
+				},
+				"parameters": {
+					"baseURL": {
+						"type": "string"
+					},
+					"relativeURL": {
+						"type": "string"
+					}
 				},
 				"folder": {
 					"name": "reusable dataset"
@@ -305,7 +357,10 @@
 				"typeProperties": {
 					"location": {
 						"type": "HttpServerLocation",
-						"relativeUrl": "src/categories.csv"
+						"relativeUrl": {
+							"value": "@dataset().relativeURL",
+							"type": "Expression"
+						}
 					},
 					"columnDelimiter": ",",
 					"rowDelimiter": "\n",
@@ -1070,20 +1125,45 @@
 							{
 								"referenceName": "ds_http_csv_storage_acct_002",
 								"type": "DatasetReference",
-								"parameters": {}
+								"parameters": {
+									"baseURL": {
+										"value": "@pipeline().parameters.baseURL",
+										"type": "Expression"
+									},
+									"relativeURL": {
+										"value": "@pipeline().parameters.relativeURL",
+										"type": "Expression"
+									}
+								}
 							}
 						],
 						"outputs": [
 							{
 								"referenceName": "ds_adls_csv_storage_acct_001_raw_reusable_folder",
 								"type": "DatasetReference",
-								"parameters": {}
+								"parameters": {
+									"fileName": {
+										"value": "@pipeline().parameters.fileName",
+										"type": "Expression"
+									}
+								}
 							}
 						]
 					}
 				],
 				"policy": {
 					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"baseURL": {
+						"type": "string"
+					},
+					"relativeURL": {
+						"type": "string"
+					},
+					"fileName": {
+						"type": "string"
+					}
 				},
 				"folder": {
 					"name": "reusable job"
@@ -1207,195 +1287,6 @@
 				"[concat(variables('factoryId'), '/datasets/order_csv_adls')]",
 				"[concat(variables('factoryId'), '/datasets/customer_sqldb')]",
 				"[concat(variables('factoryId'), '/datasets/final_order_customer_adls')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/pl_order_http_to_sdls')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "order_http_to_sdls",
-						"type": "Copy",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "DelimitedTextSource",
-								"storeSettings": {
-									"type": "HttpReadSettings",
-									"requestMethod": "GET",
-									"requestTimeout": ""
-								},
-								"formatSettings": {
-									"type": "DelimitedTextReadSettings"
-								}
-							},
-							"sink": {
-								"type": "DelimitedTextSink",
-								"storeSettings": {
-									"type": "AzureBlobFSWriteSettings"
-								},
-								"formatSettings": {
-									"type": "DelimitedTextWriteSettings",
-									"quoteAllText": true,
-									"fileExtension": ".txt"
-								}
-							},
-							"enableStaging": false,
-							"translator": {
-								"type": "TabularTranslator",
-								"typeConversion": true,
-								"typeConversionSettings": {
-									"allowDataTruncation": true,
-									"treatBooleanAsNumber": false
-								}
-							}
-						},
-						"inputs": [
-							{
-								"referenceName": "order_csv_http",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "order_csv_adls",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						]
-					},
-					{
-						"name": "customer_adls_to_azsqldb",
-						"type": "Copy",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "DelimitedTextSource",
-								"storeSettings": {
-									"type": "AzureBlobFSReadSettings",
-									"recursive": true,
-									"enablePartitionDiscovery": false
-								},
-								"formatSettings": {
-									"type": "DelimitedTextReadSettings"
-								}
-							},
-							"sink": {
-								"type": "AzureSqlSink",
-								"writeBehavior": "upsert",
-								"upsertSettings": {
-									"useTempDB": true,
-									"keys": [
-										"customer_id"
-									]
-								},
-								"sqlWriterUseTableLock": false,
-								"tableOption": "autoCreate",
-								"disableMetricsCollection": false
-							},
-							"enableStaging": false,
-							"translator": {
-								"type": "TabularTranslator",
-								"typeConversion": true,
-								"typeConversionSettings": {
-									"allowDataTruncation": true,
-									"treatBooleanAsNumber": false
-								}
-							}
-						},
-						"inputs": [
-							{
-								"referenceName": "customer_csv_adls",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "customer_sqldb",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						]
-					},
-					{
-						"name": "order_customer_flow",
-						"type": "ExecuteDataFlow",
-						"dependsOn": [
-							{
-								"activity": "order_http_to_sdls",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							},
-							{
-								"activity": "customer_adls_to_azsqldb",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataflow": {
-								"referenceName": "order_customer_flow",
-								"type": "DataFlowReference",
-								"parameters": {},
-								"datasetParameters": {
-									"orderCsv": {},
-									"customerAzSqlDb": {},
-									"sink1": {}
-								}
-							},
-							"staging": {},
-							"compute": {
-								"coreCount": 8,
-								"computeType": "General"
-							},
-							"traceLevel": "Fine"
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"folder": {
-					"name": "ordering project"
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/order_csv_http')]",
-				"[concat(variables('factoryId'), '/datasets/order_csv_adls')]",
-				"[concat(variables('factoryId'), '/datasets/customer_csv_adls')]",
-				"[concat(variables('factoryId'), '/datasets/customer_sqldb')]",
-				"[concat(variables('factoryId'), '/dataflows/order_customer_flow')]"
 			]
 		}
 	]

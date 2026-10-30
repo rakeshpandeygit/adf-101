@@ -7,6 +7,10 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "df-training-adf-dev-eus-001"
 		},
+		"ls_adls_storage_acct_001_reusable_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'ls_adls_storage_acct_001_reusable'"
+		},
 		"ls_training_adf_adls_accountKey": {
 			"type": "secureString",
 			"metadata": "Secure string for 'accountKey' of 'ls_training_adf_adls'"
@@ -23,9 +27,13 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'ls_training_adf_sqldb'"
 		},
+		"ls_adls_storage_acct_001_reusable_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://sttrainingadfdeveus001.dfs.core.windows.net/"
+		},
 		"ls_http_storage_acct_002_properties_typeProperties_url": {
 			"type": "string",
-			"defaultValue": "https://sttrainingadfdeveus002.blob.core.windows.net/"
+			"defaultValue": "@{linkedService().baseURL}"
 		},
 		"ls_training_adf_adls_properties_typeProperties_url": {
 			"type": "string",
@@ -826,20 +834,45 @@
 							{
 								"referenceName": "ds_http_csv_storage_acct_002",
 								"type": "DatasetReference",
-								"parameters": {}
+								"parameters": {
+									"baseURL": {
+										"value": "@pipeline().parameters.baseURL",
+										"type": "Expression"
+									},
+									"relativeURL": {
+										"value": "@pipeline().parameters.relativeURL",
+										"type": "Expression"
+									}
+								}
 							}
 						],
 						"outputs": [
 							{
 								"referenceName": "ds_adls_csv_storage_acct_001_raw_reusable_folder",
 								"type": "DatasetReference",
-								"parameters": {}
+								"parameters": {
+									"fileName": {
+										"value": "@pipeline().parameters.fileName",
+										"type": "Expression"
+									}
+								}
 							}
 						]
 					}
 				],
 				"policy": {
 					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"baseURL": {
+						"type": "string"
+					},
+					"relativeURL": {
+						"type": "string"
+					},
+					"fileName": {
+						"type": "string"
+					}
 				},
 				"folder": {
 					"name": "reusable job"
@@ -954,8 +987,13 @@
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"linkedServiceName": {
-					"referenceName": "ls_training_adf_adls",
+					"referenceName": "ls_adls_storage_acct_001_reusable",
 					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"fileName": {
+						"type": "string"
+					}
 				},
 				"folder": {
 					"name": "reusable dataset"
@@ -965,7 +1003,10 @@
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobFSLocation",
-						"fileName": "categories.csv",
+						"fileName": {
+							"value": "@dataset().fileName",
+							"type": "Expression"
+						},
 						"folderPath": "raw-reusable",
 						"fileSystem": "retail-raw"
 					},
@@ -977,7 +1018,7 @@
 				"schema": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_training_adf_adls')]"
+				"[concat(variables('factoryId'), '/linkedServices/ls_adls_storage_acct_001_reusable')]"
 			]
 		},
 		{
@@ -987,7 +1028,21 @@
 			"properties": {
 				"linkedServiceName": {
 					"referenceName": "ls_http_storage_acct_002",
-					"type": "LinkedServiceReference"
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"baseURL": {
+							"value": "@dataset().baseURL",
+							"type": "Expression"
+						}
+					}
+				},
+				"parameters": {
+					"baseURL": {
+						"type": "string"
+					},
+					"relativeURL": {
+						"type": "string"
+					}
 				},
 				"folder": {
 					"name": "reusable dataset"
@@ -997,7 +1052,10 @@
 				"typeProperties": {
 					"location": {
 						"type": "HttpServerLocation",
-						"relativeUrl": "src/categories.csv"
+						"relativeUrl": {
+							"value": "@dataset().relativeURL",
+							"type": "Expression"
+						}
 					},
 					"columnDelimiter": ",",
 					"rowDelimiter": "\n",
@@ -1186,11 +1244,33 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/ls_adls_storage_acct_001_reusable')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('ls_adls_storage_acct_001_reusable_properties_typeProperties_url')]",
+					"accountKey": {
+						"type": "SecureString",
+						"value": "[parameters('ls_adls_storage_acct_001_reusable_accountKey')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ls_http_storage_acct_002')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"description": "creating this LS to access blob (csv) through url",
+				"parameters": {
+					"baseURL": {
+						"type": "string"
+					}
+				},
 				"annotations": [],
 				"type": "HttpServer",
 				"typeProperties": {
