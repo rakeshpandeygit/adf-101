@@ -4,8 +4,7 @@
 		"description": "creating this LS to access blob (csv) through url",
 		"parameters": {
 			"baseURL": {
-				"type": "string",
-				"defaultValue": "https://sttrainingadfdeveus002.blob.core.windows.net/"
+				"type": "string"
 			}
 		},
 		"annotations": [],
