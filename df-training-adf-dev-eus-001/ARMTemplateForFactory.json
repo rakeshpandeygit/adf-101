@@ -794,9 +794,8 @@
 							"source": {
 								"type": "DelimitedTextSource",
 								"storeSettings": {
-									"type": "AzureBlobFSReadSettings",
-									"recursive": true,
-									"enablePartitionDiscovery": false
+									"type": "HttpReadSettings",
+									"requestMethod": "GET"
 								},
 								"formatSettings": {
 									"type": "DelimitedTextReadSettings"
@@ -825,14 +824,14 @@
 						},
 						"inputs": [
 							{
-								"referenceName": "ds_adls_csv_raw_reusable_folder",
+								"referenceName": "ds_http_csv_storage_acct_002",
 								"type": "DatasetReference",
 								"parameters": {}
 							}
 						],
 						"outputs": [
 							{
-								"referenceName": "ds_adls_csv_raw_reusable_folder",
+								"referenceName": "ds_adls_csv_storage_acct_001_raw_reusable_folder",
 								"type": "DatasetReference",
 								"parameters": {}
 							}
@@ -848,7 +847,8 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/ds_adls_csv_raw_reusable_folder')]"
+				"[concat(variables('factoryId'), '/datasets/ds_http_csv_storage_acct_002')]",
+				"[concat(variables('factoryId'), '/datasets/ds_adls_csv_storage_acct_001_raw_reusable_folder')]"
 			]
 		},
 		{
@@ -949,13 +949,16 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/ds_adls_csv_raw_reusable_folder')]",
+			"name": "[concat(parameters('factoryName'), '/ds_adls_csv_storage_acct_001_raw_reusable_folder')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"linkedServiceName": {
 					"referenceName": "ls_training_adf_adls",
 					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "reusable dataset"
 				},
 				"annotations": [],
 				"type": "DelimitedText",
@@ -978,54 +981,16 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/ds_blob_csv_src_folder')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_training_adf_retail_101",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobStorageLocation",
-						"fileName": "categories.csv",
-						"container": "src"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": [
-					{
-						"name": "1",
-						"type": "String"
-					},
-					{
-						"name": "2",
-						"type": "String"
-					},
-					{
-						"name": "Football",
-						"type": "String"
-					}
-				]
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_training_adf_retail_101')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_http_csv_src_folder')]",
+			"name": "[concat(parameters('factoryName'), '/ds_http_csv_storage_acct_002')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"linkedServiceName": {
 					"referenceName": "ls_http_storage_acct_002",
 					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "reusable dataset"
 				},
 				"annotations": [],
 				"type": "DelimitedText",
@@ -1035,6 +1000,7 @@
 						"relativeUrl": "src/categories.csv"
 					},
 					"columnDelimiter": ",",
+					"rowDelimiter": "\n",
 					"escapeChar": "\\",
 					"firstRowAsHeader": false,
 					"quoteChar": "\""
