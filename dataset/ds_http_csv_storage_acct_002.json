@@ -1,0 +1,26 @@
+{
+	"name": "ds_http_csv_storage_acct_002",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_http_storage_acct_002",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "reusable dataset"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "HttpServerLocation",
+				"relativeUrl": "src/categories.csv"
+			},
+			"columnDelimiter": ",",
+			"rowDelimiter": "\n",
+			"escapeChar": "\\",
+			"firstRowAsHeader": false,
+			"quoteChar": "\""
+		},
+		"schema": []
+	}
+}

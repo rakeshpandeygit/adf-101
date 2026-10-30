@@ -19,9 +19,8 @@
 					"source": {
 						"type": "DelimitedTextSource",
 						"storeSettings": {
-							"type": "AzureBlobFSReadSettings",
-							"recursive": true,
-							"enablePartitionDiscovery": false
+							"type": "HttpReadSettings",
+							"requestMethod": "GET"
 						},
 						"formatSettings": {
 							"type": "DelimitedTextReadSettings"
@@ -50,13 +49,13 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "ds_adls_csv_raw_reusable_folder",
+						"referenceName": "ds_http_csv_storage_acct_002",
 						"type": "DatasetReference"
 					}
 				],
 				"outputs": [
 					{
-						"referenceName": "ds_adls_csv_raw_reusable_folder",
+						"referenceName": "ds_adls_csv_storage_acct_001_raw_reusable_folder",
 						"type": "DatasetReference"
 					}
 				]
