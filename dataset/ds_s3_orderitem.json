@@ -1,0 +1,51 @@
+{
+	"name": "ds_s3_orderitem",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_training_s3",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "s3 azure key vault project"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AmazonS3Location",
+				"bucketName": "s3-bckt-4-az",
+				"fileName": "order_items.csv"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "order_item_id",
+				"type": "String"
+			},
+			{
+				"name": "order_item_order_id",
+				"type": "String"
+			},
+			{
+				"name": "order_item_product_id",
+				"type": "String"
+			},
+			{
+				"name": "order_item_quantity",
+				"type": "String"
+			},
+			{
+				"name": "order_item_subtotal",
+				"type": "String"
+			},
+			{
+				"name": "order_item_product_price",
+				"type": "String"
+			}
+		]
+	}
+}

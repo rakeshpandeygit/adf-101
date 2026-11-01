@@ -1,0 +1,146 @@
+{
+	"name": "df_process_order",
+	"properties": {
+		"folder": {
+			"name": "s3 azure key vault project"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_az_adls_strg_acct_001_order_item",
+						"type": "DatasetReference"
+					},
+					"name": "s3OrderIitem",
+					"description": "pull order_item.csv from s3 bucket"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_az_adls_strg_acct_001_order",
+						"type": "DatasetReference"
+					},
+					"name": "blobOrder",
+					"description": "Order file from Azure Blob"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_az_adls_strg_acct_001_order_out_HV",
+						"type": "DatasetReference"
+					},
+					"name": "HVorder",
+					"description": "order amount > 500, store in Az SQL DB"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_az_adls_strg_acct_001_order_out_LV",
+						"type": "DatasetReference"
+					},
+					"name": "sink1",
+					"description": "order amount <= 500, store in ADLS"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_az_adls_strg_acct_001_order_out_ERROR",
+						"type": "DatasetReference"
+					},
+					"name": "ErrorFile",
+					"description": "invalid order_amount, store in ADLS"
+				}
+			],
+			"transformations": [
+				{
+					"name": "aggregateAmtPerOrder",
+					"description": "Aggregate the order_amount per order_id"
+				},
+				{
+					"name": "orderJoinOrderItem",
+					"description": "order join order_item"
+				},
+				{
+					"name": "highValueOrder",
+					"description": "amount more than 500"
+				},
+				{
+					"name": "selectColumns"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          order_item_id as short,",
+				"          order_item_order_id as short,",
+				"          order_item_product_id as short,",
+				"          order_item_quantity as short,",
+				"          order_item_subtotal as double,",
+				"          order_item_product_price as double",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     inferDriftedColumnTypes: true,",
+				"     ignoreNoFilesFound: false) ~> s3OrderIitem",
+				"source(output(",
+				"          order_id as short,",
+				"          order_date as string,",
+				"          order_customer_id as short,",
+				"          order_status as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     inferDriftedColumnTypes: true,",
+				"     ignoreNoFilesFound: false) ~> blobOrder",
+				"s3OrderIitem aggregate(groupBy(order_item_order_id),",
+				"     order_item_subtotal = sum(order_item_subtotal)) ~> aggregateAmtPerOrder",
+				"blobOrder, aggregateAmtPerOrder join(order_id == order_item_order_id,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> orderJoinOrderItem",
+				"selectColumns split(greater(order_amount,500),",
+				"     lesserOrEqual(order_amount, 500),",
+				"     disjoint: false) ~> highValueOrder@(highValue, lowValue, errorRecords)",
+				"orderJoinOrderItem select(mapColumn(",
+				"          order_id,",
+				"          order_date,",
+				"          order_status,",
+				"          order_amount = order_item_subtotal,",
+				"          order_customer_id",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColumns",
+				"highValueOrder@highValue sink(allowSchemaDrift: false,",
+				"     validateSchema: true,",
+				"     input(",
+				"          order_id as string,",
+				"          order_date as string,",
+				"          order_status as string,",
+				"          order_amount as decimal(18,2),",
+				"          order_customer_id as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> HVorder",
+				"highValueOrder@lowValue sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sink1",
+				"highValueOrder@errorRecords sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> ErrorFile"
+			]
+		}
+	}
+}

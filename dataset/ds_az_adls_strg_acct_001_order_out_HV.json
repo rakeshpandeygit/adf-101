@@ -1,0 +1,42 @@
+{
+	"name": "ds_az_adls_strg_acct_001_order_out_HV",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_training_adf_sqldb",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "s3 azure key vault project"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "order_id",
+				"type": "nvarchar"
+			},
+			{
+				"name": "order_date",
+				"type": "nvarchar"
+			},
+			{
+				"name": "order_status",
+				"type": "nvarchar"
+			},
+			{
+				"name": "order_amount",
+				"type": "decimal",
+				"precision": 18,
+				"scale": 2
+			},
+			{
+				"name": "order_customer_id",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "orders"
+		}
+	}
+}

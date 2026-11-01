@@ -1,0 +1,26 @@
+{
+	"name": "ds_az_adls_strg_acct_001_order_out_ERROR",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_training_adf_retail_101_lake",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "s3 azure key vault project"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "raw_kv_out_low_value_order",
+				"fileSystem": "retail-raw"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	}
+}

@@ -1,0 +1,43 @@
+{
+	"name": "ds_az_blob_strg_acct_002_order_csv",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_training_adf_retail_101",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "s3 azure key vault project"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "orders.csv",
+				"container": "src"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "order_id",
+				"type": "String"
+			},
+			{
+				"name": "order_date",
+				"type": "String"
+			},
+			{
+				"name": "order_customer_id",
+				"type": "String"
+			},
+			{
+				"name": "order_status",
+				"type": "String"
+			}
+		]
+	}
+}
