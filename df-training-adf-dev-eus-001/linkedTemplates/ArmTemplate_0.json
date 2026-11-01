@@ -35,6 +35,10 @@
 			"type": "string",
 			"defaultValue": "@{linkedService().baseURL}"
 		},
+		"ls_kv_training_adf_s3_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://kvTrainingAdfDevEus001.vault.azure.net/"
+		},
 		"ls_training_adf_adls_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://sttrainingadfdeveus001.dfs.core.windows.net/"
@@ -98,6 +102,19 @@
 					"url": "[parameters('ls_http_storage_acct_002_properties_typeProperties_url')]",
 					"enableServerCertificateValidation": true,
 					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_kv_training_adf_s3')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureKeyVault",
+				"typeProperties": {
+					"baseUrl": "[parameters('ls_kv_training_adf_s3_properties_typeProperties_baseUrl')]"
 				}
 			},
 			"dependsOn": []
@@ -327,6 +344,225 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/ds_az_adls_strg_acct_001_order')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_training_adf_retail_101_lake",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "s3 azure key vault project"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "raw_kv_order",
+						"fileSystem": "retail-raw"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_training_adf_retail_101_lake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_az_adls_strg_acct_001_order_item')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_training_adf_retail_101_lake",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "s3 azure key vault project"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "raw_kv_order_item",
+						"fileSystem": "retail-raw"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_training_adf_retail_101_lake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_az_adls_strg_acct_001_order_out_ERROR')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_training_adf_retail_101_lake",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "s3 azure key vault project"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "raw_kv_out_low_value_order",
+						"fileSystem": "retail-raw"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_training_adf_retail_101_lake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_az_adls_strg_acct_001_order_out_HV')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_training_adf_sqldb",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "s3 azure key vault project"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "order_id",
+						"type": "nvarchar"
+					},
+					{
+						"name": "order_date",
+						"type": "nvarchar"
+					},
+					{
+						"name": "order_status",
+						"type": "nvarchar"
+					},
+					{
+						"name": "order_amount",
+						"type": "decimal",
+						"precision": 18,
+						"scale": 2
+					},
+					{
+						"name": "order_customer_id",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "orders"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_training_adf_sqldb')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_az_adls_strg_acct_001_order_out_LV')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_training_adf_retail_101_lake",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "s3 azure key vault project"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "raw_kv_out_low_value_order",
+						"fileSystem": "retail-raw"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_training_adf_retail_101_lake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_az_blob_strg_acct_002_order_csv')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_training_adf_retail_101",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "s3 azure key vault project"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "orders.csv",
+						"container": "src"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "order_id",
+						"type": "String"
+					},
+					{
+						"name": "order_date",
+						"type": "String"
+					},
+					{
+						"name": "order_customer_id",
+						"type": "String"
+					},
+					{
+						"name": "order_status",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_training_adf_retail_101')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ds_blob_csv_storage_acct_002_cofig_reusable')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -447,819 +683,6 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/ls_training_adf_adls')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/order_csv_adls')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_training_adf_retail_101_lake",
-					"type": "LinkedServiceReference"
-				},
-				"folder": {
-					"name": "ordering project"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": "orders.csv",
-						"folderPath": "raw",
-						"fileSystem": "retail-raw"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": [
-					{
-						"name": "order_id",
-						"type": "String"
-					},
-					{
-						"name": "order_date",
-						"type": "String"
-					},
-					{
-						"name": "order_customer_id",
-						"type": "String"
-					},
-					{
-						"name": "order_status",
-						"type": "String"
-					}
-				]
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_training_adf_retail_101_lake')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/order_csv_http')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_training_adf_http",
-					"type": "LinkedServiceReference"
-				},
-				"folder": {
-					"name": "ordering project"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "HttpServerLocation",
-						"relativeUrl": "file_uploads/349536/attachments/c28/5fb/25b/orders.csv"
-					},
-					"columnDelimiter": ",",
-					"rowDelimiter": "\n",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_training_adf_http')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/product_csv_blob')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_training_adf_retail_101",
-					"type": "LinkedServiceReference"
-				},
-				"folder": {
-					"name": "retaildb project"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobStorageLocation",
-						"fileName": "products.csv",
-						"container": "src"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": false,
-					"quoteChar": "\""
-				},
-				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_training_adf_retail_101')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/product_csv_lake')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_training_adf_retail_101_lake",
-					"type": "LinkedServiceReference"
-				},
-				"folder": {
-					"name": "retaildb project"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": "products.csv",
-						"folderPath": "landing",
-						"fileSystem": "retail-raw"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": false,
-					"quoteChar": "\""
-				},
-				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_training_adf_retail_101_lake')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/pl-retail-product-raw')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "retaildb project pipeline to ingest file from blob to adls gen2",
-				"activities": [
-					{
-						"name": "product_file_validation",
-						"type": "Validation",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"dataset": {
-								"referenceName": "product_csv_blob",
-								"type": "DatasetReference",
-								"parameters": {}
-							},
-							"timeout": "0.00:01:00",
-							"sleep": 10
-						}
-					},
-					{
-						"name": "fetch_product_file_metadata",
-						"type": "GetMetadata",
-						"dependsOn": [
-							{
-								"activity": "product_file_validation",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataset": {
-								"referenceName": "product_csv_blob",
-								"type": "DatasetReference",
-								"parameters": {}
-							},
-							"fieldList": [
-								"exists",
-								"columnCount",
-								"size",
-								"itemName"
-							],
-							"storeSettings": {
-								"type": "AzureBlobStorageReadSettings",
-								"recursive": true,
-								"enablePartitionDiscovery": false
-							},
-							"formatSettings": {
-								"type": "DelimitedTextReadSettings"
-							}
-						}
-					},
-					{
-						"name": "validate_metadata",
-						"type": "IfCondition",
-						"dependsOn": [
-							{
-								"activity": "fetch_product_file_metadata",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"expression": {
-								"value": "@equals(activity('fetch_product_file_metadata').output.columnCount,6)",
-								"type": "Expression"
-							},
-							"ifFalseActivities": [
-								{
-									"name": "file_format_issue",
-									"type": "Fail",
-									"dependsOn": [],
-									"userProperties": [],
-									"typeProperties": {
-										"message": "file format issue - Num Columns not 6",
-										"errorCode": "420"
-									}
-								}
-							],
-							"ifTrueActivities": [
-								{
-									"name": "success_landing",
-									"type": "Copy",
-									"dependsOn": [],
-									"policy": {
-										"timeout": "0.12:00:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"source": {
-											"type": "DelimitedTextSource",
-											"additionalColumns": [
-												{
-													"name": "_file_nm",
-													"value": {
-														"value": "@activity('fetch_product_file_metadata').output.itemName",
-														"type": "Expression"
-													}
-												},
-												{
-													"name": "_file_size_bytes",
-													"value": {
-														"value": "@activity('fetch_product_file_metadata').output.size",
-														"type": "Expression"
-													}
-												},
-												{
-													"name": "_ingestion_dt",
-													"value": {
-														"value": "@pipeline().TriggerTime",
-														"type": "Expression"
-													}
-												},
-												{
-													"name": "_run_id",
-													"value": {
-														"value": "@pipeline().RunId",
-														"type": "Expression"
-													}
-												}
-											],
-											"storeSettings": {
-												"type": "AzureBlobStorageReadSettings",
-												"recursive": true,
-												"enablePartitionDiscovery": false
-											},
-											"formatSettings": {
-												"type": "DelimitedTextReadSettings"
-											}
-										},
-										"sink": {
-											"type": "DelimitedTextSink",
-											"storeSettings": {
-												"type": "AzureBlobFSWriteSettings",
-												"metadata": [
-													{
-														"name": "_ingestion_date",
-														"value": {
-															"value": "@pipeline().TriggerTime",
-															"type": "Expression"
-														}
-													},
-													{
-														"name": "_run_id",
-														"value": {
-															"value": "@pipeline().RunId",
-															"type": "Expression"
-														}
-													},
-													{
-														"name": "_file_name",
-														"value": {
-															"value": "@activity('fetch_product_file_metadata').output.itemName",
-															"type": "Expression"
-														}
-													},
-													{
-														"name": "_file_size_bytes",
-														"value": {
-															"value": "@activity('fetch_product_file_metadata').output.size",
-															"type": "Expression"
-														}
-													}
-												]
-											},
-											"formatSettings": {
-												"type": "DelimitedTextWriteSettings",
-												"quoteAllText": true,
-												"fileExtension": ".txt"
-											}
-										},
-										"enableStaging": false,
-										"translator": {
-											"type": "TabularTranslator",
-											"typeConversion": true,
-											"typeConversionSettings": {
-												"allowDataTruncation": true,
-												"treatBooleanAsNumber": false
-											}
-										}
-									},
-									"inputs": [
-										{
-											"referenceName": "product_csv_blob",
-											"type": "DatasetReference",
-											"parameters": {}
-										}
-									],
-									"outputs": [
-										{
-											"referenceName": "product_csv_lake",
-											"type": "DatasetReference",
-											"parameters": {}
-										}
-									]
-								},
-								{
-									"name": "remove_src_file",
-									"description": "remove the source file upon successful ingestion to adls gen2",
-									"type": "Delete",
-									"dependsOn": [
-										{
-											"activity": "success_landing",
-											"dependencyConditions": [
-												"Succeeded"
-											]
-										}
-									],
-									"policy": {
-										"timeout": "0.12:00:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"dataset": {
-											"referenceName": "product_csv_blob",
-											"type": "DatasetReference",
-											"parameters": {}
-										},
-										"logStorageSettings": {
-											"linkedServiceName": {
-												"referenceName": "ls_training_adf_retail_101_lake",
-												"type": "LinkedServiceReference"
-											},
-											"path": "retail-raw/retail_ingestion_logs"
-										},
-										"enableLogging": true,
-										"storeSettings": {
-											"type": "AzureBlobStorageReadSettings",
-											"recursive": false,
-											"enablePartitionDiscovery": false
-										}
-									}
-								}
-							]
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"folder": {
-					"name": "retaildb project"
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/product_csv_blob')]",
-				"[concat(variables('factoryId'), '/datasets/product_csv_lake')]",
-				"[concat(variables('factoryId'), '/linkedServices/ls_training_adf_retail_101_lake')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/pl_retail_product_raw_file_process_on_arrival')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "retaildb project pipeline to ingest file from blob to adls gen2",
-				"activities": [
-					{
-						"name": "fetch_product_file_metadata",
-						"type": "GetMetadata",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataset": {
-								"referenceName": "product_csv_blob",
-								"type": "DatasetReference",
-								"parameters": {}
-							},
-							"fieldList": [
-								"exists",
-								"columnCount",
-								"size",
-								"itemName"
-							],
-							"storeSettings": {
-								"type": "AzureBlobStorageReadSettings",
-								"recursive": true,
-								"enablePartitionDiscovery": false
-							},
-							"formatSettings": {
-								"type": "DelimitedTextReadSettings"
-							}
-						}
-					},
-					{
-						"name": "validate_metadata",
-						"type": "IfCondition",
-						"dependsOn": [
-							{
-								"activity": "fetch_product_file_metadata",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"expression": {
-								"value": "@equals(activity('fetch_product_file_metadata').output.columnCount,6)",
-								"type": "Expression"
-							},
-							"ifFalseActivities": [
-								{
-									"name": "file_format_issue",
-									"type": "Fail",
-									"dependsOn": [],
-									"userProperties": [],
-									"typeProperties": {
-										"message": "file format issue - Num Columns not 6",
-										"errorCode": "420"
-									}
-								}
-							],
-							"ifTrueActivities": [
-								{
-									"name": "success_landing",
-									"type": "Copy",
-									"dependsOn": [],
-									"policy": {
-										"timeout": "0.12:00:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"source": {
-											"type": "DelimitedTextSource",
-											"additionalColumns": [
-												{
-													"name": "_file_nm",
-													"value": {
-														"value": "@activity('fetch_product_file_metadata').output.itemName",
-														"type": "Expression"
-													}
-												},
-												{
-													"name": "_file_size_bytes",
-													"value": {
-														"value": "@activity('fetch_product_file_metadata').output.size",
-														"type": "Expression"
-													}
-												},
-												{
-													"name": "_ingestion_dt",
-													"value": {
-														"value": "@pipeline().TriggerTime",
-														"type": "Expression"
-													}
-												},
-												{
-													"name": "_run_id",
-													"value": {
-														"value": "@pipeline().RunId",
-														"type": "Expression"
-													}
-												}
-											],
-											"storeSettings": {
-												"type": "AzureBlobStorageReadSettings",
-												"recursive": true,
-												"enablePartitionDiscovery": false
-											},
-											"formatSettings": {
-												"type": "DelimitedTextReadSettings"
-											}
-										},
-										"sink": {
-											"type": "DelimitedTextSink",
-											"storeSettings": {
-												"type": "AzureBlobFSWriteSettings",
-												"metadata": [
-													{
-														"name": "_ingestion_date",
-														"value": {
-															"value": "@pipeline().TriggerTime",
-															"type": "Expression"
-														}
-													},
-													{
-														"name": "_run_id",
-														"value": {
-															"value": "@pipeline().RunId",
-															"type": "Expression"
-														}
-													},
-													{
-														"name": "_file_name",
-														"value": {
-															"value": "@activity('fetch_product_file_metadata').output.itemName",
-															"type": "Expression"
-														}
-													},
-													{
-														"name": "_file_size_bytes",
-														"value": {
-															"value": "@activity('fetch_product_file_metadata').output.size",
-															"type": "Expression"
-														}
-													}
-												]
-											},
-											"formatSettings": {
-												"type": "DelimitedTextWriteSettings",
-												"quoteAllText": true,
-												"fileExtension": ".txt"
-											}
-										},
-										"enableStaging": false,
-										"translator": {
-											"type": "TabularTranslator",
-											"typeConversion": true,
-											"typeConversionSettings": {
-												"allowDataTruncation": true,
-												"treatBooleanAsNumber": false
-											}
-										}
-									},
-									"inputs": [
-										{
-											"referenceName": "product_csv_blob",
-											"type": "DatasetReference",
-											"parameters": {}
-										}
-									],
-									"outputs": [
-										{
-											"referenceName": "product_csv_lake",
-											"type": "DatasetReference",
-											"parameters": {}
-										}
-									]
-								},
-								{
-									"name": "remove_src_file",
-									"description": "remove the source file upon successful ingestion to adls gen2",
-									"type": "Delete",
-									"dependsOn": [
-										{
-											"activity": "success_landing",
-											"dependencyConditions": [
-												"Succeeded"
-											]
-										}
-									],
-									"policy": {
-										"timeout": "0.12:00:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"dataset": {
-											"referenceName": "product_csv_blob",
-											"type": "DatasetReference",
-											"parameters": {}
-										},
-										"logStorageSettings": {
-											"linkedServiceName": {
-												"referenceName": "ls_training_adf_retail_101_lake",
-												"type": "LinkedServiceReference"
-											},
-											"path": "retail-raw/retail_ingestion_logs"
-										},
-										"enableLogging": true,
-										"storeSettings": {
-											"type": "AzureBlobStorageReadSettings",
-											"recursive": false,
-											"enablePartitionDiscovery": false
-										}
-									}
-								}
-							]
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"folder": {
-					"name": "retaildb project"
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/product_csv_blob')]",
-				"[concat(variables('factoryId'), '/datasets/product_csv_lake')]",
-				"[concat(variables('factoryId'), '/linkedServices/ls_training_adf_retail_101_lake')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/pl_reuasble_blobs_to_adls')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "config_file_having_file_list_for_reusable",
-						"type": "Lookup",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.00:10:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "DelimitedTextSource",
-								"storeSettings": {
-									"type": "AzureBlobStorageReadSettings",
-									"recursive": true,
-									"enablePartitionDiscovery": false
-								},
-								"formatSettings": {
-									"type": "DelimitedTextReadSettings"
-								}
-							},
-							"dataset": {
-								"referenceName": "ds_blob_csv_storage_acct_002_cofig_reusable",
-								"type": "DatasetReference",
-								"parameters": {}
-							},
-							"firstRowOnly": false
-						}
-					},
-					{
-						"name": "iterate_over_config_file",
-						"type": "ForEach",
-						"dependsOn": [
-							{
-								"activity": "config_file_having_file_list_for_reusable",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"items": {
-								"value": "@activity('config_file_having_file_list_for_reusable').output.value",
-								"type": "Expression"
-							},
-							"activities": [
-								{
-									"name": "param_copy_job",
-									"description": "Parameterizing copy activity",
-									"type": "Copy",
-									"dependsOn": [],
-									"policy": {
-										"timeout": "0.00:10:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"source": {
-											"type": "DelimitedTextSource",
-											"storeSettings": {
-												"type": "HttpReadSettings",
-												"requestMethod": "GET"
-											},
-											"formatSettings": {
-												"type": "DelimitedTextReadSettings"
-											}
-										},
-										"sink": {
-											"type": "DelimitedTextSink",
-											"storeSettings": {
-												"type": "AzureBlobFSWriteSettings"
-											},
-											"formatSettings": {
-												"type": "DelimitedTextWriteSettings",
-												"quoteAllText": true,
-												"fileExtension": ".txt"
-											}
-										},
-										"enableStaging": false,
-										"translator": {
-											"type": "TabularTranslator",
-											"typeConversion": true,
-											"typeConversionSettings": {
-												"allowDataTruncation": true,
-												"treatBooleanAsNumber": false
-											}
-										}
-									},
-									"inputs": [
-										{
-											"referenceName": "ds_http_csv_storage_acct_002",
-											"type": "DatasetReference",
-											"parameters": {
-												"baseURL": {
-													"value": "@item().baseURL.value",
-													"type": "Expression"
-												},
-												"relativeURL": {
-													"value": "@item().relativeURL.value",
-													"type": "Expression"
-												}
-											}
-										}
-									],
-									"outputs": [
-										{
-											"referenceName": "ds_adls_csv_storage_acct_001_raw_reusable_folder",
-											"type": "DatasetReference",
-											"parameters": {
-												"fileName": {
-													"value": "@item().fileName.value",
-													"type": "Expression"
-												}
-											}
-										}
-									]
-								}
-							]
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"folder": {
-					"name": "reusable job"
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/ds_blob_csv_storage_acct_002_cofig_reusable')]",
-				"[concat(variables('factoryId'), '/datasets/ds_http_csv_storage_acct_002')]",
-				"[concat(variables('factoryId'), '/datasets/ds_adls_csv_storage_acct_001_raw_reusable_folder')]"
 			]
 		}
 	]

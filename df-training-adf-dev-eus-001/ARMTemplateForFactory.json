@@ -35,6 +35,10 @@
 			"type": "string",
 			"defaultValue": "@{linkedService().baseURL}"
 		},
+		"ls_kv_training_adf_s3_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://kvTrainingAdfDevEus001.vault.azure.net/"
+		},
 		"ls_training_adf_adls_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://sttrainingadfdeveus001.dfs.core.windows.net/"
@@ -58,6 +62,17 @@
 		"ls_training_adf_sqldb_properties_typeProperties_userName": {
 			"type": "string",
 			"defaultValue": "sqladmin"
+		},
+		"ls_training_s3_properties_typeProperties_accessKeyId": {
+			"type": "object",
+			"defaultValue": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_kv_training_adf_s3",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "s3AccessKeyrapandey0011"
+			}
 		},
 		"tr_products_copy_on_arrival_properties_typeProperties_scope": {
 			"type": "string",
@@ -338,6 +353,86 @@
 				"[concat(variables('factoryId'), '/datasets/product_csv_blob')]",
 				"[concat(variables('factoryId'), '/datasets/product_csv_lake')]",
 				"[concat(variables('factoryId'), '/linkedServices/ls_training_adf_retail_101_lake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_blob_ingest_order')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "s3_order_2_adls",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ""
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_az_blob_strg_acct_002_order_csv",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_az_adls_strg_acct_001_order",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "s3 azure key vault project"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_az_blob_strg_acct_002_order_csv')]",
+				"[concat(variables('factoryId'), '/datasets/ds_az_adls_strg_acct_001_order')]"
 			]
 		},
 		{
@@ -886,11 +981,11 @@
 											"type": "DatasetReference",
 											"parameters": {
 												"baseURL": {
-													"value": "@item().baseURL.value",
+													"value": "@item().baseURL",
 													"type": "Expression"
 												},
 												"relativeURL": {
-													"value": "@item().relativeURL.value",
+													"value": "@item().relativeURL",
 													"type": "Expression"
 												}
 											}
@@ -902,7 +997,7 @@
 											"type": "DatasetReference",
 											"parameters": {
 												"fileName": {
-													"value": "@item().fileName.value",
+													"value": "@item().fileName",
 													"type": "Expression"
 												}
 											}
@@ -925,6 +1020,86 @@
 				"[concat(variables('factoryId'), '/datasets/ds_blob_csv_storage_acct_002_cofig_reusable')]",
 				"[concat(variables('factoryId'), '/datasets/ds_http_csv_storage_acct_002')]",
 				"[concat(variables('factoryId'), '/datasets/ds_adls_csv_storage_acct_001_raw_reusable_folder')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_s3_kv_ingest_order_item')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "s3_order_item_2_adls",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AmazonS3ReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ""
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_s3_orderitem",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_az_adls_strg_acct_001_order_item",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "s3 azure key vault project"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_s3_orderitem')]",
+				"[concat(variables('factoryId'), '/datasets/ds_az_adls_strg_acct_001_order_item')]"
 			]
 		},
 		{
@@ -1065,6 +1240,225 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/ds_az_adls_strg_acct_001_order')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_training_adf_retail_101_lake",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "s3 azure key vault project"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "raw_kv_order",
+						"fileSystem": "retail-raw"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_training_adf_retail_101_lake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_az_adls_strg_acct_001_order_item')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_training_adf_retail_101_lake",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "s3 azure key vault project"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "raw_kv_order_item",
+						"fileSystem": "retail-raw"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_training_adf_retail_101_lake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_az_adls_strg_acct_001_order_out_ERROR')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_training_adf_retail_101_lake",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "s3 azure key vault project"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "raw_kv_out_low_value_order",
+						"fileSystem": "retail-raw"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_training_adf_retail_101_lake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_az_adls_strg_acct_001_order_out_HV')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_training_adf_sqldb",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "s3 azure key vault project"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "order_id",
+						"type": "nvarchar"
+					},
+					{
+						"name": "order_date",
+						"type": "nvarchar"
+					},
+					{
+						"name": "order_status",
+						"type": "nvarchar"
+					},
+					{
+						"name": "order_amount",
+						"type": "decimal",
+						"precision": 18,
+						"scale": 2
+					},
+					{
+						"name": "order_customer_id",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "orders"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_training_adf_sqldb')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_az_adls_strg_acct_001_order_out_LV')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_training_adf_retail_101_lake",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "s3 azure key vault project"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "raw_kv_out_low_value_order",
+						"fileSystem": "retail-raw"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_training_adf_retail_101_lake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_az_blob_strg_acct_002_order_csv')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_training_adf_retail_101",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "s3 azure key vault project"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "orders.csv",
+						"container": "src"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "order_id",
+						"type": "String"
+					},
+					{
+						"name": "order_date",
+						"type": "String"
+					},
+					{
+						"name": "order_customer_id",
+						"type": "String"
+					},
+					{
+						"name": "order_status",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_training_adf_retail_101')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ds_blob_csv_storage_acct_002_cofig_reusable')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -1154,6 +1548,62 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/ls_http_storage_acct_002')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_s3_orderitem')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_training_s3",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "s3 azure key vault project"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AmazonS3Location",
+						"bucketName": "s3-bckt-4-az",
+						"fileName": "order_items.csv"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "order_item_id",
+						"type": "String"
+					},
+					{
+						"name": "order_item_order_id",
+						"type": "String"
+					},
+					{
+						"name": "order_item_product_id",
+						"type": "String"
+					},
+					{
+						"name": "order_item_quantity",
+						"type": "String"
+					},
+					{
+						"name": "order_item_subtotal",
+						"type": "String"
+					},
+					{
+						"name": "order_item_product_price",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_training_s3')]"
 			]
 		},
 		{
@@ -1369,6 +1819,19 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/ls_kv_training_adf_s3')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureKeyVault",
+				"typeProperties": {
+					"baseUrl": "[parameters('ls_kv_training_adf_s3_properties_typeProperties_baseUrl')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ls_training_adf_adls')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
@@ -1456,6 +1919,31 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/ls_training_s3')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AmazonS3",
+				"typeProperties": {
+					"serviceUrl": "https://s3.amazonaws.com",
+					"accessKeyId": "[parameters('ls_training_s3_properties_typeProperties_accessKeyId')]",
+					"secretAccessKey": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "ls_kv_training_adf_s3",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": "s3SecretAccessKeyrapandey0011"
+					},
+					"authenticationType": "AccessKey"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_kv_training_adf_s3')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/tr_products_copy')]",
 			"type": "Microsoft.DataFactory/factories/triggers",
 			"apiVersion": "2018-06-01",
@@ -1522,6 +2010,161 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/pipelines/pl_retail_product_raw_file_process_on_arrival')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_process_order')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"folder": {
+					"name": "s3 azure key vault project"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ds_az_adls_strg_acct_001_order_item",
+								"type": "DatasetReference"
+							},
+							"name": "s3OrderIitem",
+							"description": "pull order_item.csv from s3 bucket"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_az_adls_strg_acct_001_order",
+								"type": "DatasetReference"
+							},
+							"name": "blobOrder",
+							"description": "Order file from Azure Blob"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_az_adls_strg_acct_001_order_out_HV",
+								"type": "DatasetReference"
+							},
+							"name": "HVorder",
+							"description": "order amount > 500, store in Az SQL DB"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_az_adls_strg_acct_001_order_out_LV",
+								"type": "DatasetReference"
+							},
+							"name": "sink1",
+							"description": "order amount <= 500, store in ADLS"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_az_adls_strg_acct_001_order_out_ERROR",
+								"type": "DatasetReference"
+							},
+							"name": "ErrorFile",
+							"description": "invalid order_amount, store in ADLS"
+						}
+					],
+					"transformations": [
+						{
+							"name": "aggregateAmtPerOrder",
+							"description": "Aggregate the order_amount per order_id"
+						},
+						{
+							"name": "orderJoinOrderItem",
+							"description": "order join order_item"
+						},
+						{
+							"name": "highValueOrder",
+							"description": "amount more than 500"
+						},
+						{
+							"name": "selectColumns"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          order_item_id as short,",
+						"          order_item_order_id as short,",
+						"          order_item_product_id as short,",
+						"          order_item_quantity as short,",
+						"          order_item_subtotal as double,",
+						"          order_item_product_price as double",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     inferDriftedColumnTypes: true,",
+						"     ignoreNoFilesFound: false) ~> s3OrderIitem",
+						"source(output(",
+						"          order_id as short,",
+						"          order_date as string,",
+						"          order_customer_id as short,",
+						"          order_status as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     inferDriftedColumnTypes: true,",
+						"     ignoreNoFilesFound: false) ~> blobOrder",
+						"s3OrderIitem aggregate(groupBy(order_item_order_id),",
+						"     order_item_subtotal = sum(order_item_subtotal)) ~> aggregateAmtPerOrder",
+						"blobOrder, aggregateAmtPerOrder join(order_id == order_item_order_id,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> orderJoinOrderItem",
+						"selectColumns split(greater(order_amount,500),",
+						"     lesserOrEqual(order_amount, 500),",
+						"     disjoint: false) ~> highValueOrder@(highValue, lowValue, errorRecords)",
+						"orderJoinOrderItem select(mapColumn(",
+						"          order_id,",
+						"          order_date,",
+						"          order_status,",
+						"          order_amount = order_item_subtotal,",
+						"          order_customer_id",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> selectColumns",
+						"highValueOrder@highValue sink(allowSchemaDrift: false,",
+						"     validateSchema: true,",
+						"     input(",
+						"          order_id as string,",
+						"          order_date as string,",
+						"          order_status as string,",
+						"          order_amount as decimal(18,2),",
+						"          order_customer_id as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> HVorder",
+						"highValueOrder@lowValue sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> sink1",
+						"highValueOrder@errorRecords sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> ErrorFile"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_az_adls_strg_acct_001_order_item')]",
+				"[concat(variables('factoryId'), '/datasets/ds_az_adls_strg_acct_001_order')]",
+				"[concat(variables('factoryId'), '/datasets/ds_az_adls_strg_acct_001_order_out_HV')]",
+				"[concat(variables('factoryId'), '/datasets/ds_az_adls_strg_acct_001_order_out_LV')]",
+				"[concat(variables('factoryId'), '/datasets/ds_az_adls_strg_acct_001_order_out_ERROR')]"
 			]
 		},
 		{
