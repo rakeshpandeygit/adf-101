@@ -1,5 +1,5 @@
 {
-	"name": "pl_s3_kv_ingest_order_item",
+	"name": "pl_s3_ingest_order_item",
 	"properties": {
 		"activities": [
 			{

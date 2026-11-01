@@ -1,0 +1,73 @@
+{
+	"name": "pl_exec_order_order_item_flow",
+	"properties": {
+		"activities": [
+			{
+				"name": "ingest Order",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_blob_ingest_order",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "ingest OrderItem",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "ingest Order",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_s3_ingest_order_item",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "process Order",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "ingest OrderItem",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_process_order",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "s3 azure key vault project"
+		},
+		"annotations": []
+	}
+}

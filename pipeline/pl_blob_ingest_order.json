@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "s3_order_2_adls",
+				"name": "blob_order_2_adls",
 				"type": "Copy",
 				"dependsOn": [],
 				"policy": {
