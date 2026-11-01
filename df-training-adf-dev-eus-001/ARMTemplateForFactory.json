@@ -2254,6 +2254,9 @@
 						},
 						{
 							"name": "selectColumns"
+						},
+						{
+							"name": "AlterRow"
 						}
 					],
 					"scriptLines": [
@@ -2298,7 +2301,8 @@
 						"     ),",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true) ~> selectColumns",
-						"highValueOrder@highValue sink(allowSchemaDrift: false,",
+						"highValueOrder@highValue alterRow(upsertIf(true())) ~> AlterRow",
+						"AlterRow sink(allowSchemaDrift: false,",
 						"     validateSchema: true,",
 						"     input(",
 						"          order_id as string,",
@@ -2308,13 +2312,21 @@
 						"          order_customer_id as string",
 						"     ),",
 						"     deletable:false,",
-						"     insertable:true,",
+						"     insertable:false,",
 						"     updateable:false,",
-						"     upsertable:false,",
+						"     upsertable:true,",
+						"     keys:['order_id'],",
 						"     format: 'table',",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
-						"     errorHandlingOption: 'stopOnFirstError') ~> HVorder",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          order_id,",
+						"          order_date,",
+						"          order_status,",
+						"          order_amount,",
+						"          order_customer_id",
+						"     )) ~> HVorder",
 						"highValueOrder@lowValue sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     umask: 0022,",
