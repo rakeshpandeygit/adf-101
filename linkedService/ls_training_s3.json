@@ -1,0 +1,27 @@
+{
+	"name": "ls_training_s3",
+	"properties": {
+		"annotations": [],
+		"type": "AmazonS3",
+		"typeProperties": {
+			"serviceUrl": "https://s3.amazonaws.com",
+			"accessKeyId": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_kv_training_adf_s3",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "s3AccessKeyrapandey0011"
+			},
+			"secretAccessKey": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_kv_training_adf_s3",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "s3SecretAccessKeyrapandey0011"
+			},
+			"authenticationType": "AccessKey"
+		}
+	}
+}
