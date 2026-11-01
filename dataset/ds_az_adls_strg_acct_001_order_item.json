@@ -13,6 +13,7 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
+				"fileName": "order_items.csv",
 				"folderPath": "raw_kv_order_item",
 				"fileSystem": "retail-raw"
 			},
