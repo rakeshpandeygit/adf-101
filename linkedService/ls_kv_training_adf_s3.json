@@ -1,0 +1,10 @@
+{
+	"name": "ls_kv_training_adf_s3",
+	"properties": {
+		"annotations": [],
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://kvTrainingAdfDevEus001.vault.azure.net/"
+		}
+	}
+}
