@@ -1,0 +1,24 @@
+{
+	"name": "tr_order_file_blob",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "pl_exec_order_order_item_flow",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "BlobEventsTrigger",
+		"typeProperties": {
+			"blobPathBeginsWith": "/src/blobs/",
+			"ignoreEmptyBlobs": true,
+			"scope": "/subscriptions/18f82c1d-5f8a-45a4-bbae-460a3807decb/resourceGroups/rg-training-adf-dev-eus-001/providers/Microsoft.Storage/storageAccounts/sttrainingadfdeveus002",
+			"events": [
+				"Microsoft.Storage.BlobCreated"
+			]
+		}
+	}
+}
