@@ -1431,6 +1431,59 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/pl_process_order')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "df_process_order",
+						"description": "Execute the dataflow for processing order and order item files",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_process_order",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"s3OrderIitem": {},
+									"blobOrder": {},
+									"HVorder": {},
+									"sink1": {},
+									"ErrorFile": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "s3 azure key vault project"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/df_process_order')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/pl_s3_kv_ingest_order_item')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
